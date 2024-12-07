@@ -17,14 +17,6 @@ const courseSchema = mongoose.Schema({
     type: Number,
     required: true
   },
-  courseSeat: {
-    type: Number,
-    required: true
-  },
-  courseAmount: {
-    type: Number,
-    required: true
-  },
   courseVideoTitle: {
     type: String,
     required: true

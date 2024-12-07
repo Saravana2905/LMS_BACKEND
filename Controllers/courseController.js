@@ -12,8 +12,6 @@ exports.createCourse = async (req, res) => {
       courseDescription,
       courseCategory,
       courseDuration,
-      courseSeat,
-      courseAmount,
       courseVideoTitle,
     } = req.body;
     let courseVideoUrl, courseThumbnailUrl;
@@ -50,8 +48,6 @@ exports.createCourse = async (req, res) => {
       courseDescription,
       courseCategory,
       courseDuration,
-      courseSeat,
-      courseAmount,
       courseVideoTitle,
       courseVideo: courseVideoUrl,
       courseThumbnail: courseThumbnailUrl,
@@ -96,8 +92,6 @@ exports.updateCourseById = async (req, res) => {
       courseDescription,
       courseCategory,
       courseDuration,
-      courseSeat,
-      courseAmount,
       courseVideoTitle,
     } = req.body;
 
@@ -140,8 +134,6 @@ exports.updateCourseById = async (req, res) => {
       courseDescription,
       courseCategory,
       courseDuration,
-      courseSeat,
-      courseAmount,
       courseVideoTitle,
       courseVideo: courseVideoUrl,
       courseThumbnail: courseThumbnailUrl,
