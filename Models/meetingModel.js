@@ -21,7 +21,7 @@ const meetingSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  courseTime: {
+  joinUrl: {
     type: String,
     required: true
   }

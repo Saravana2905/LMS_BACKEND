@@ -3,6 +3,7 @@ const app = express();
 const mongoose = require('mongoose');
 const courseRoutes = require('./Routes/courseRoute');
 const trainerRoutes = require('./Routes/trainerRoute');
+const meetingRoutes = require('./Routes/meetingRoute');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use('/courses', courseRoutes);
 app.use('/trainer', trainerRoutes);
+app.use('/meeting', meetingRoutes)
 
 //test route
 app.get('/', (req, res) => {
