@@ -23,7 +23,7 @@ const meetingSchema = mongoose.Schema({
   },
   joinUrl: {
     type: String,
-    required: true
+    required: false
   }
 });
 
