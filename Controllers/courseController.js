@@ -37,7 +37,7 @@ exports.createCourse = async (req, res) => {
         const attachmentPath = path.resolve(file.path);
         const attachmentUpload = await cloudinary.uploader.upload(
           attachmentPath,
-          { resource_type: "auto" }
+          { resource_type: "raw" }
         );
         courseAttachmentUrls.push(attachmentUpload.secure_url);
         fs.unlinkSync(attachmentPath);
