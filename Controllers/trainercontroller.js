@@ -94,6 +94,30 @@ exports.updateTrainer = async (req, res) => {
     if (req.body.city) updateData.city = req.body.city;
     if (req.body.myCourse) updateData.myCourse = req.body.myCourse;
 
+    let imageUrl, resumeUrl;
+
+    // Upload trainer image if provided
+    if (req.files && req.files.image) {
+      const imagePath = path.resolve(req.files.image[0].path);
+      const imageUpload = await cloudinary.uploader.upload(imagePath, {
+        resource_type: "image",
+      });
+      imageUrl = imageUpload.secure_url;
+      updateData.image = imageUrl; // Add image URL to updateData
+      fs.unlinkSync(imagePath);
+    }
+
+    // Upload trainer resume if provided
+    if (req.files && req.files.resume) {
+      const resumePath = path.resolve(req.files.resume[0].path);
+      const resumeUpload = await cloudinary.uploader.upload(resumePath, {
+        resource_type: "auto",
+      });
+      resumeUrl = resumeUpload.secure_url;
+      updateData.resume = resumeUrl; // Add resume URL to updateData
+      fs.unlinkSync(resumePath);
+    }
+
     const trainer = await Trainer.findByIdAndUpdate(id, updateData, { new: true });
     if (!trainer) {
       console.log("Trainer not found for ID: ", id);
