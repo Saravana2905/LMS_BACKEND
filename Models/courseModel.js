@@ -33,7 +33,16 @@ const courseSchema = mongoose.Schema({
     type: [String], // Change this line to accept an array of strings
     default: [],
     required: true
-  }
+  },
+  courseLevel: {
+    type: String,
+    values: ['Beginner', 'Intermediate', 'Advanced'],
+    required: true
+  },
+  student: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Student"
+  }]  
 },
 {timestamps: true}
 );

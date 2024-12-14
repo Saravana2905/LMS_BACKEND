@@ -2,6 +2,7 @@ const cloudinary = require("../Middleware/cloudinary");
 const Course = require("../Models/courseModel");
 const path = require("path");
 const fs = require('fs');
+const Student = require("../Models/studentModel");
 
 exports.createCourse = async (req, res) => {
   try {
@@ -13,6 +14,7 @@ exports.createCourse = async (req, res) => {
       courseCategory,
       courseDuration,
       courseVideoTitle,
+      courseLevel,
     } = req.body;
     let courseVideoUrl, courseThumbnailUrl;
     const courseAttachmentUrls = []; // Upload course video
@@ -49,6 +51,7 @@ exports.createCourse = async (req, res) => {
       courseCategory,
       courseDuration,
       courseVideoTitle,
+      courseLevel,
       courseVideo: courseVideoUrl,
       courseThumbnail: courseThumbnailUrl,
       courseAttachment: courseAttachmentUrls,
@@ -93,6 +96,7 @@ exports.updateCourseById = async (req, res) => {
       courseCategory,
       courseDuration,
       courseVideoTitle,
+      courseLevel,
     } = req.body;
 
     let courseVideoUrl, courseThumbnailUrl;
@@ -135,6 +139,7 @@ exports.updateCourseById = async (req, res) => {
       courseCategory,
       courseDuration,
       courseVideoTitle,
+      courseLevel,
       courseVideo: courseVideoUrl,
       courseThumbnail: courseThumbnailUrl,
       courseAttachment: courseAttachmentUrls,
@@ -159,6 +164,62 @@ exports.deleteAllCourses = async (req, res) => {
   try {
     await Course.deleteMany();
     res.status(200).json({ message: "All courses deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.registerCourse = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const studentId = req.body.student;
+
+    // Find the student by ID
+    const student = await Student.findById(studentId);
+
+    // Check if the student exists
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Check if the course is already registered for the student
+    if (student.courses.includes(courseId)) {
+      return res.status(400).json({ message: "Course already registered" });
+    }
+
+    // Add student to the course
+    const course = await Course.findByIdAndUpdate(
+      courseId, 
+      { $push: { student: studentId } }, 
+      { new: true }
+    );
+
+    // Add course to the student's list of courses
+    await Student.findByIdAndUpdate(
+      studentId,
+      { $push: { courses: courseId } },
+      { new: true }
+    );
+
+    res.status(200).json({ course });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getCourseByStudentId = async (req, res) => {
+  try {
+    const courses = await Course.find({ student: req.params.id });
+    res.status(200).json({ courses });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getCourseByCategory = async (req, res) => {
+  try {
+    const courses = await Course.find({ courseCategory: req.params.category });
+    res.status(200).json({ courses });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
