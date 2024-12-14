@@ -1,5 +1,5 @@
 const cloudinary = require("../Middleware/cloudinary");
-const Student = require("../Models/studentModel");
+const Student = require("../Models/StudentModel");
 const path = require("path");
 const fs = require('fs');
 const bcrypt = require('bcrypt');

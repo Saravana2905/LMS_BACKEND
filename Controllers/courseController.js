@@ -2,7 +2,7 @@ const cloudinary = require("../Middleware/cloudinary");
 const Course = require("../Models/courseModel");
 const path = require("path");
 const fs = require('fs');
-const Student = require("../Models/studentModel");
+const Student = require("../Models/StudentModel");
 
 exports.createCourse = async (req, res) => {
   try {
