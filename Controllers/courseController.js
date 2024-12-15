@@ -207,6 +207,7 @@ exports.registerCourse = async (req, res) => {
   }
 };
 
+//get course by student id
 exports.getCourseByStudentId = async (req, res) => {
   try {
     const courses = await Course.find({ student: req.params.id });
@@ -216,6 +217,7 @@ exports.getCourseByStudentId = async (req, res) => {
   }
 };
 
+//get course by category
 exports.getCourseByCategory = async (req, res) => {
   try {
     const courses = await Course.find({ courseCategory: req.params.category });
