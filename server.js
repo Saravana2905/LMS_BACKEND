@@ -6,6 +6,8 @@ const trainerRoutes = require('./Routes/trainerRoute');
 const studentRoutes = require('./Routes/studentRoute');
 const meetingRoutes = require('./Routes/meetingRoute');
 const webinarRoutes = require('./Routes/webinarRoute');
+const mailRoutes = require('./Routes/mailRoutes');
+const paypalRoutes = require('./Routes/paypalRoute')
 const cors = require('cors');
 require('dotenv').config();
 
@@ -24,6 +26,8 @@ app.use('/trainer', trainerRoutes);
 app.use('/student', studentRoutes);
 app.use('/meeting', meetingRoutes);
 app.use('/webinar', webinarRoutes);
+app.use('/mail', mailRoutes);
+app.use('/paypal', paypalRoutes);
 
 //test route
 app.get('/', (req, res) => {
