@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 
-const studentSchema = new mongoose.Schema({
+const studentSchema = mongoose.Schema({
     firstName: {
         type: String,
         required: true
@@ -26,7 +26,15 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    address: {
+    city: {
+        type: String,
+        required: true
+    },
+    state: {
+        type: String,
+        required: true
+    },
+    country: {
         type: String,
         required: true
     },
@@ -34,9 +42,9 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    confirmPassword: {
+    role: {
         type: String,
-        required: true
+        value: "Student"
     },
     courses: [{
         type: mongoose.Schema.Types.ObjectId,

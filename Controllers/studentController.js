@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 
 exports.createStudent = async (req, res) => {
   try {
+
     const {
       firstName,
       lastName,
@@ -16,6 +17,15 @@ exports.createStudent = async (req, res) => {
       password,
       confirmPassword
     } = req.body;
+
+    // Check if the student already exists
+    const oldStudent = await Student.findOne({ email }); // Use findOne to check for existing student
+    if (oldStudent) {
+      return res.status(400).json({
+        success: false,
+        message: "Student already exists with this email",
+      });
+    }
 
     // Check if password and confirmPassword match
     if (password !== confirmPassword) {
@@ -42,15 +52,15 @@ exports.createStudent = async (req, res) => {
     }
 
     const student = await Student.create({
-      firstName,
+      firstName,   
       lastName,
       email,
       mobile,
       alternateMobile,
       address,
       password: hashedPassword,
-      confirmPassword: hashedConfirmPassword,
-      profileImage: profileImageUrl
+      profileImage: profileImageUrl,
+      role :"Student"
     });
 
     res.status(201).json({ 
