@@ -187,13 +187,6 @@ exports.registerCourse = async (req, res) => {
       return res.status(400).json({ message: "Course already registered" });
     }
 
-    // Add student to the course
-    const course = await Course.findByIdAndUpdate(
-      courseId, 
-      { $push: { student: studentId } }, 
-      { new: true }
-    );
-
     // Add course to the student's list of courses
     await Student.findByIdAndUpdate(
       studentId,

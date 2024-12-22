@@ -19,5 +19,6 @@ router.delete('/deleteCourse/:id', deleteCourseById);
 router.delete('/deleteAllCourses', deleteAllCourses);
 router.post('/registerCourse/:id', registerCourse)
 router.get('/getCourseByCategory/:category', getCourseByCategory);
+router.get('/getCourseByStudentId/:id', getCourseByStudentId);
 
 module.exports = router;
