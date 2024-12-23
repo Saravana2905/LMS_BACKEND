@@ -3,6 +3,7 @@ const Course = require("../Models/courseModel");
 const path = require("path");
 const fs = require('fs');
 const Student = require("../Models/StudentModel");
+const Batch = require("../Models/BatchModel");  
 
 exports.createCourse = async (req, res) => {
   try {
@@ -177,7 +178,6 @@ exports.registerCourse = async (req, res) => {
     // Find the student by ID
     const student = await Student.findById(studentId);
 
-    // Check if the student exists
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
@@ -187,18 +187,46 @@ exports.registerCourse = async (req, res) => {
       return res.status(400).json({ message: "Course already registered" });
     }
 
-    // Add course to the student's list of courses
-    await Student.findByIdAndUpdate(
+    // Find the latest batch for the course
+    let latestBatch = await Batch.findOne({ courseId })
+      .sort({ batchNumber: -1 })
+      .exec();
+
+    if (!latestBatch || latestBatch.students.length >= 15) {
+      // If no batch exists or the latest batch is full, create a new batch
+      const newBatchNumber = latestBatch ? latestBatch.batchNumber + 1 : 1;
+      latestBatch = await Batch.create({
+        courseId,
+        batchNumber: newBatchNumber,
+        students: [],
+      });
+    }
+
+    // Add the student to the batch
+    latestBatch.students.push(studentId);
+    await latestBatch.save();
+
+    // Add course to the student's list of courses and update batch number
+    const updatedStudent = await Student.findByIdAndUpdate(
       studentId,
-      { $push: { courses: courseId } },
+      { 
+        $push: { courses: courseId }, 
+        batchNumber: latestBatch.batchNumber // Update the student's batch number
+      },
       { new: true }
     );
 
-    res.status(200).json({ course });
+    res.status(200).json({
+      success: true,
+      message: "Student registered and added to batch",
+      batchNumber: latestBatch.batchNumber,
+      student: updatedStudent,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 //get course by student id
 exports.getCourseByStudentId = async (req, res) => {
@@ -219,3 +247,38 @@ exports.getCourseByCategory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+//get reading material based on courses registered by student
+exports.getReadingMaterial = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+
+    // Find the student by ID
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Find all courses registered by the student
+    const courses = await Course.find({ _id: { $in: student.courses } });
+
+    // Prepare response data including course details and attachments
+    const courseDetailsWithAttachments = courses.map(course => ({
+      courseId: course._id,
+      courseTitle: course.courseTitle,
+      courseDescription: course.courseDescription,
+      courseCategory: course.courseCategory,
+      courseLevel: course.courseLevel,
+      courseDuration: course.courseDuration,
+      courseVideo: course.courseVideo,
+      courseThumbnail: course.courseThumbnail,
+      attachments: course.courseAttachment,
+    }));
+
+    res.status(200).json({ courses: courseDetailsWithAttachments });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

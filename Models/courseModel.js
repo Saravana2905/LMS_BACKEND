@@ -39,10 +39,12 @@ const courseSchema = mongoose.Schema({
     values: ['Beginner', 'Intermediate', 'Advanced'],
     required: true
   },
-  student: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Student"
-  }]  
+  batches: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Batch',
+    },
+  ],  
 },
 {timestamps: true}
 );

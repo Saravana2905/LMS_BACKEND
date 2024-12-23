@@ -108,3 +108,20 @@ exports.deleteTicket = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.closeTicket = async (req, res) =>{
+    try {
+        const ticket = await TechnicalSupport.findByIdAndUpdate(req.params.id, {
+            status: "Closed",
+            closedate: new Date()
+        }, { new: true });
+        if (!ticket) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+        res.status(200).json({
+            success:true,
+            message:"Ticket closed successfully",ticket});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

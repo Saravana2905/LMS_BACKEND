@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createStudent, getStudents, updateStudent, deleteStudent } = require('../Controllers/studentController');
+const { createStudent, getStudents, updateStudent, deleteStudent, loginStudent } = require('../Controllers/studentController');
 const upload = require('../Middleware/multer');
 
 router.post('/createStudent', upload.fields([
@@ -12,5 +12,6 @@ router.put('/updateStudent/:id', upload.fields([
     { name: 'profileImage', maxCount: 1 }
 ]), updateStudent);
 router.delete('/deleteStudent/:id', deleteStudent);
+router.post("/login", loginStudent);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createCourse, getAllCourses, getCourseById, updateCourseById, deleteCourseById, deleteAllCourses, getCourseByStudentId, registerCourse, getCourseByCategory } = require('../Controllers/courseController');
+const { createCourse, getAllCourses, getCourseById, updateCourseById, deleteCourseById, deleteAllCourses, getCourseByStudentId, registerCourse, getCourseByCategory, getReadingMaterial } = require('../Controllers/courseController');
 const upload = require('../Middleware/multer');
 
 router.post('/createCourse', upload.fields([
@@ -20,5 +20,6 @@ router.delete('/deleteAllCourses', deleteAllCourses);
 router.post('/registerCourse/:id', registerCourse)
 router.get('/getCourseByCategory/:category', getCourseByCategory);
 router.get('/getCourseByStudentId/:id', getCourseByStudentId);
+router.get('/getMaterialByStudentId/:id', getReadingMaterial);
 
 module.exports = router;

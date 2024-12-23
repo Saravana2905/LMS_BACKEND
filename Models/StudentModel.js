@@ -14,9 +14,13 @@ const studentSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    profileImage: {
+    gender: {
         type: String,
         required: true
+    },
+    Dob: {
+        type: Date,
+        required : true
     },
     email: {
         type: String,
@@ -26,21 +30,29 @@ const studentSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    alternateMobile: {
+    addressline1: {
         type: String,
-        required: true
+        required: false
+    },
+    addressline2: {
+        type: String,
+        required: false 
     },
     city: {
         type: String,
-        required: true
+        required: false
     },
     state: {
         type: String,
-        required: true
+        required: false
     },
     country: {
         type: String,
-        required: true
+        required: false
+    },
+    zipcode: {
+        type: String,
+        required: false
     },
     password: {
         type: String,
