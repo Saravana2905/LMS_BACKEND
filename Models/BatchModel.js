@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const batchSchema = new mongoose.Schema({
+const batchSchema = mongoose.Schema({
   courseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',

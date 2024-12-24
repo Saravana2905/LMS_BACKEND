@@ -2,7 +2,8 @@ const mongoose = require('mongoose')
 
 const TechnicalSupportSchema = mongoose.Schema({
     clientId: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student',
         required : true
     },
     firstname: {
@@ -13,9 +14,9 @@ const TechnicalSupportSchema = mongoose.Schema({
         type: String,
         required : true
     },
-    batchno: {
-        type: String,
-        required : true
+    batch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Batch'
     },
     emailId: {
         type: String,
@@ -31,7 +32,7 @@ const TechnicalSupportSchema = mongoose.Schema({
     },
     status: {
         type: String,
-        required : true
+        required : false
     }
 })
 

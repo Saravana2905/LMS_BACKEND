@@ -9,6 +9,16 @@ exports.createCourse = async (req, res) => {
   try {
     console.log(req.files);
     console.log(req.body);
+
+    // Validate required fields
+    if (!req.body.courseLevel || !req.files.courseVideo || !req.files.courseThumbnail) {
+      return res.status(400).json({
+        success: false,
+        message: "Course creation failed",
+        error: "Missing required fields: courseVideo, courseThumbnail, or courseLevel",
+      });
+    }
+
     const {
       courseTitle,
       courseDescription,
@@ -17,8 +27,11 @@ exports.createCourse = async (req, res) => {
       courseVideoTitle,
       courseLevel,
     } = req.body;
+
     let courseVideoUrl, courseThumbnailUrl;
-    const courseAttachmentUrls = []; // Upload course video
+    const courseAttachmentUrls = [];
+
+    // Upload course video
     if (req.files.courseVideo) {
       const videoPath = path.resolve(req.files.courseVideo[0].path);
       const videoUpload = await cloudinary.uploader.upload(videoPath, {
@@ -26,7 +39,9 @@ exports.createCourse = async (req, res) => {
       });
       courseVideoUrl = videoUpload.secure_url;
       fs.unlinkSync(videoPath);
-    } // Upload course thumbnail
+    }
+
+    // Upload course thumbnail
     if (req.files.courseThumbnail) {
       const imagePath = path.resolve(req.files.courseThumbnail[0].path);
       const imageUpload = await cloudinary.uploader.upload(imagePath, {
@@ -34,7 +49,9 @@ exports.createCourse = async (req, res) => {
       });
       courseThumbnailUrl = imageUpload.secure_url;
       fs.unlinkSync(imagePath);
-    } // Upload course attachments
+    }
+
+    // Upload course attachments
     if (req.files.courseAttachment) {
       for (const file of req.files.courseAttachment) {
         const attachmentPath = path.resolve(file.path);
@@ -46,6 +63,8 @@ exports.createCourse = async (req, res) => {
         fs.unlinkSync(attachmentPath);
       }
     }
+
+    // Create the course document
     const course = await Course.create({
       courseTitle,
       courseDescription,
@@ -57,19 +76,21 @@ exports.createCourse = async (req, res) => {
       courseThumbnail: courseThumbnailUrl,
       courseAttachment: courseAttachmentUrls,
     });
-    res
-      .status(201)
-      .json({ success: true, message: "Course created successfully", course });
+
+    res.status(201).json({
+      success: true,
+      message: "Course created successfully",
+      course,
+    });
   } catch (error) {
-    res
-      .status(400)
-      .json({
-        success: false,
-        message: "Course creation failed",
-        error: error.message,
-      });
+    res.status(400).json({
+      success: false,
+      message: "Course creation failed",
+      error: error.message,
+    });
   }
 };
+
 
 exports.getAllCourses = async (req, res) => {
   try {
