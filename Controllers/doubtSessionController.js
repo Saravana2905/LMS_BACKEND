@@ -1,7 +1,7 @@
 const DoubtSession = require('../Models/DoubtSession');
-const Student = require('../Models/Student');
-const Trainer = require('../Models/Trainer');
-const Batch = require('../Models/Batch');
+const Student = require('../Models/StudentModel');
+const Trainer = require('../Models/trainermodel');
+const Batch = require('../Models/BatchModel');
 
 exports.createDoubtSession = async (req, res) => {
     try {

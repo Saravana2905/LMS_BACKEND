@@ -1,27 +1,43 @@
 const TechnicalSupport = require('../Models/technicalSupportModel')
+const Student = require('../Models/StudentModel')
 
 // Create a new technical support ticket
 exports.createTicket = async (req, res) => {
     try {
-        const { clientId, firstname, lastname, batchno, emailId, issuedate, closedate, status } = req.body;
+        const { clientId, firstname, lastname, emailId, message } = req.body;
+
+        // Validate the clientId
+        if (!clientId || typeof clientId !== 'string' || clientId.trim() === '') {
+            return res.status(400).json({ message: 'Invalid clientId provided' });
+        }
+
+        // Check if the student exists
+        const client = await Student.findOne({ Id: clientId });
+        if (!client) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        // Proceed to create the ticket
         const newTicket = new TechnicalSupport({
             clientId,
             firstname,
             lastname,
-            batchno,
+            message,
             emailId,
-            issuedate: new Date(issuedate), // Ensure the date is stored as Date type
-            closedate: new Date(closedate), // Ensure the date is stored as Date type
-            status
+            status: "Created"
         });
+
         await newTicket.save();
         res.status(201).json({
-            success:true,
-            message:"Ticket created successfully",newTicket});
+            success: true,
+            message: "Ticket created successfully",
+            newTicket
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Get all technical support tickets
 exports.getTickets = async (req, res) => {
@@ -53,15 +69,13 @@ exports.getTicketById = async (req, res) => {
 // Update a technical support ticket by ID
 exports.updateTicket = async (req, res) => {
     try {
-        const { clientId, firstname, lastname, batchno, emailId, issuedate, closedate, status } = req.body;
+        const { clientId, firstname, lastname, emailId,  status } = req.body;
         const ticket = await TechnicalSupport.findByIdAndUpdate(req.params.id, {
             clientId,
             firstname,
             lastname,
             batchno,
             emailId,
-            issuedate: new Date(issuedate), // Ensure the date is stored as Date type
-            closedate: new Date(closedate), // Ensure the date is stored as Date type
             status
         }, { new: true });
         if (!ticket) {
@@ -125,3 +139,4 @@ exports.closeTicket = async (req, res) =>{
         res.status(500).json({ error: error.message });
     }
 }
+

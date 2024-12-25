@@ -11,6 +11,8 @@ const paypalRoutes = require('./Routes/paypalRoute');
 const batchRoutes = require('./Routes/batchRoute')
 const projectRoutes = require('./Routes/projectRoute');
 const testRoutes = require('./Routes/testRoute');
+const doubtSessionRoutes = require('./Routes/doubtSessionRoute');
+const technicalSupportRoutes = require('./Routes/technicalSupportRoute');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -35,6 +37,8 @@ app.use('/paypal', paypalRoutes);
 app.use('/batch', batchRoutes);
 app.use('/project', projectRoutes);
 app.use('/test', testRoutes);
+app.use('/doubtSession', doubtSessionRoutes);
+app.use('/technicalSupport', technicalSupportRoutes)
 
 //test route
 app.get('/', (req, res) => {

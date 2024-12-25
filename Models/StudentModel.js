@@ -58,10 +58,14 @@ const studentSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    paymentId: {
+        type: String,
+        required: false
+    },
     role: {
         type: String,
         required: true
-        },
+    },
     courses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course"

@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const { createTechnicalSupport, getTechnicalSupports, getTechnicalSupportById, updateTechnicalSupport, deleteTechnicalSupport } = require('../Controllers/technicalSupportController');
+const { createTicket, getTickets, updateTicket, updateTicketStatus, deleteTicket, closeTicket } = require('../Controllers/technicalSupportController');
+const { getTestById } = require('../Controllers/testController');
 
-router.post('/createTechnicalSupport', createTechnicalSupport);
-router.get('/getTechnicalSupports', getTechnicalSupports);
-router.get('/getTechnicalSupportById/:id', getTechnicalSupportById);
-router.put('/updateTechnicalSupport/:id', updateTechnicalSupport);
-router.delete('/deleteTechnicalSupport/:id', deleteTechnicalSupport);
+router.post('/createTechnicalSupport', createTicket);
+router.get('/getTechnicalSupports', getTickets);
+router.get('/getTechnicalSupportById/:id', getTestById);
+router.put('/updateTechnicalSupport/:id', updateTicket);
+router.put('/updateTicketStatus/:id', updateTicketStatus)
+router.delete('/deleteTechnicalSupport/:id', deleteTicket);
+router.put('/closeTicket/:id', closeTicket);
 
 module.exports = router;
