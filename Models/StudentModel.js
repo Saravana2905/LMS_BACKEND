@@ -60,8 +60,8 @@ const studentSchema = mongoose.Schema({
     },
     role: {
         type: String,
-        value: "Student"
-    },
+        required: true
+        },
     courses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course"

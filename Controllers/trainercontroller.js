@@ -44,7 +44,8 @@ exports.createTrainer = async (req, res) => {
       image: imageUrl,
       resume: resumeUrl,
       city,
-      myCourse
+      myCourse,
+      role: "Trainer"
     });
 
     res.status(201).json({ 
@@ -93,6 +94,7 @@ exports.updateTrainer = async (req, res) => {
     if (req.body.mailId) updateData.mailId = req.body.mailId;
     if (req.body.city) updateData.city = req.body.city;
     if (req.body.myCourse) updateData.myCourse = req.body.myCourse;
+    if (!req.body.role) updateData.role = "Trainer";
 
     let imageUrl, resumeUrl;
 

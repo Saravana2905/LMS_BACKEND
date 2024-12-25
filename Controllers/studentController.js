@@ -221,7 +221,7 @@ exports.loginStudent = async (req, res) => {
         message: "Invalid email or password",
       });
     }
-
+console.log( student,"test");
     // Generate a JWT
     const token = jwt.sign(
       { id: student._id, email: student.email, role: student.role },

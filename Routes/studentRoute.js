@@ -2,16 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { createStudent, getStudents, updateStudent, deleteStudent, loginStudent } = require('../Controllers/studentController');
 const upload = require('../Middleware/multer');
+const Auth = require('../Middleware/Authenticate')
 
 router.post('/createStudent', upload.fields([
     { name: 'profileImage', maxCount: 1 }
-]), createStudent);
+]), createStudent);//student
 
-router.get('/getStudents', getStudents);
-router.put('/updateStudent/:id', upload.fields([
+router.get('/getStudents', getStudents);//admin & trainer
+router.put('/updateStudent/:id',Auth.authenticateJWT, Auth.verifyRole(['Student','Trainer']) , upload.fields([
     { name: 'profileImage', maxCount: 1 }
-]), updateStudent);
-router.delete('/deleteStudent/:id', deleteStudent);
-router.post("/login", loginStudent);
+]), updateStudent); //student
+router.delete('/deleteStudent/:id', deleteStudent); //admin
+router.post("/login", loginStudent); //student
 
 module.exports = router;
