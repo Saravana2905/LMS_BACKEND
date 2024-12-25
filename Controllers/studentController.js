@@ -1,10 +1,9 @@
-const cloudinary = require("../Middleware/cloudinary");
-const Student = require("../Models/StudentModel");
-const path = require("path");
-const fs = require("fs");
-const bcrypt = require("bcrypt");
-const Counter = require("../Models/counterModel"); // Counter model for tracking the sequence
-const jwt = require("jsonwebtoken");
+const path = require('path');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const bcrypt = require('bcrypt');
+const Counter = require('../Models/counterModel'); // Counter model for tracking the sequence
+const Student = require('../Models/StudentModel');
 
 exports.createStudent = async (req, res) => {
   try {
@@ -29,21 +28,26 @@ exports.createStudent = async (req, res) => {
     if (oldStudent) {
       return res.status(400).json({
         success: false,
-        message: "Student already exists with this email",
+        message: 'Student already exists with this email',
       });
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let profileImageUrl;
+    let profileImageUrl = null;
     if (req.files?.profileImage) {
+      // Generate student folder if not exists
+      const studentFolderPath = path.join(__dirname, '..', 'uploads', studentId);
+      await mkdirp(studentFolderPath); // Ensure the folder exists
+
+      // Get file path and move the file to the student's folder
       const imagePath = path.resolve(req.files.profileImage[0].path);
-      const imageUpload = await cloudinary.uploader.upload(imagePath, {
-        resource_type: "image",
-      });
-      profileImageUrl = imageUpload.secure_url;
-      fs.unlinkSync(imagePath);
+      const newImagePath = path.join(studentFolderPath, req.files.profileImage[0].originalname);
+      fs.renameSync(imagePath, newImagePath); // Move file to the new folder
+
+      // Update the profile image path
+      profileImageUrl = path.join('uploads', studentId, req.files.profileImage[0].originalname);
     }
 
     // Function to generate a sequential unique ID
@@ -54,7 +58,7 @@ exports.createStudent = async (req, res) => {
         { $inc: { value: 1 } },
         { new: true, upsert: true }
       );
-      const formattedValue = String(counter.value).padStart(4, "0");
+      const formattedValue = String(counter.value).padStart(4, '0');
       return `iTrain-${currentYear}${formattedValue}`;
     }
 
@@ -76,22 +80,23 @@ exports.createStudent = async (req, res) => {
       zipcode,
       password: hashedPassword,
       profileImage: profileImageUrl,
-      role: "Student",
+      role: 'Student',
     });
 
     res.status(201).json({
       success: true,
-      message: "Student created successfully",
+      message: 'Student created successfully',
       student,
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: "Student creation failed",
+      message: 'Student creation failed',
       error: error.message,
     });
   }
 };
+
 
 exports.getStudents = async (req, res) => {
   try {
@@ -150,7 +155,7 @@ exports.updateStudent = async (req, res) => {
       if (existingStudent && existingStudent._id.toString() !== id) {
         return res.status(400).json({
           success: false,
-          message: "Email already in use by another student",
+          message: 'Email already in use by another student',
         });
       }
       updateData.email = req.body.email;
@@ -169,27 +174,64 @@ exports.updateStudent = async (req, res) => {
       updateData.password = hashedPassword;
     }
 
+    // Check if files are provided
+    let profileImageUrl = null;
+    if (req.files?.profileImage) {
+      // Get the current student from the database
+      const student = await Student.findById(id);
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found',
+        });
+      }
+
+      // Generate student folder path
+      const studentFolderPath = path.join(__dirname, '..', 'uploads', student.Id);
+      await mkdirp(studentFolderPath); // Ensure the folder exists
+
+      // Remove old profile image if exists
+      if (student.profileImage) {
+        const oldImagePath = path.join(__dirname, '..', student.profileImage);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath); // Remove the old image
+        }
+      }
+
+      // Get the file path and move it to the student's folder
+      const imagePath = path.resolve(req.files.profileImage[0].path);
+      const newImagePath = path.join(studentFolderPath, req.files.profileImage[0].originalname);
+      fs.renameSync(imagePath, newImagePath); // Move file to the new folder
+
+      // Set the new profile image path
+      profileImageUrl = path.join('uploads', student.Id, req.files.profileImage[0].originalname);
+      updateData.profileImage = profileImageUrl; // Update the profile image path
+    }
+
+    // Update the student record with the new data
     const student = await Student.findByIdAndUpdate(id, updateData, { new: true });
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: "Student not found",
+        message: 'Student not found',
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Student updated successfully",
+      message: 'Student updated successfully',
       student,
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: "Student update failed",
+      message: 'Student update failed',
       error: error.message,
     });
   }
 };
+
+
 
 exports.deleteStudent = async (req, res) => {
   try {
