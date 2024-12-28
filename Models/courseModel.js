@@ -39,6 +39,35 @@ const courseSchema = mongoose.Schema({
     values: ['Beginner', 'Intermediate', 'Advanced'],
     required: true
   },
+    whatYouWillLearn:{
+        type: [String],
+        default: [],
+        required: false
+    },
+    keyFeatures:{
+        type: [String],
+        default: [],
+        required: false
+    },
+    whoCanEnroll:{
+        type: [String],
+        default: [],
+        required: false
+    },
+    itSkillsCovered:{
+        type: [String],
+        default: [],
+        required: false
+    },
+    whyShouldJoin:{
+        type: [String],
+        default: [],
+        required: false
+    },
+    certification:{
+        type: String,
+        required: false
+    },
   batches: [
     {
       type: mongoose.Schema.Types.ObjectId,

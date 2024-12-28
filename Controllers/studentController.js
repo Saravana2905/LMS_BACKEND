@@ -23,6 +23,18 @@ exports.createStudent = async (req, res) => {
       password,
     } = req.body;
 
+    // Function to generate a sequential unique ID
+    async function generateUniqueId() {
+      const currentYear = new Date().getFullYear();
+      const counter = await Counter.findOneAndUpdate(
+        { key: `iTrain-${currentYear}` },
+        { $inc: { value: 1 } },
+        { new: true, upsert: true }
+      );
+      const formattedValue = String(counter.value).padStart(4, '0');
+      return `iTrain-${currentYear}${formattedValue}`;
+    }
+
     // Check if the student already exists
     const oldStudent = await Student.findOne({ email });
     if (oldStudent) {
@@ -36,9 +48,16 @@ exports.createStudent = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let profileImageUrl = null;
+    let studentId = null;
+
     if (req.files?.profileImage) {
+      studentId = await generateUniqueId();
+
+      // Use folderName from request body for student image storage
+      const folderName = req.body.folderName || studentId;
+
       // Generate student folder if not exists
-      const studentFolderPath = path.join(__dirname, '..', 'uploads', studentId);
+      const studentFolderPath = path.join(__dirname, '..', 'uploads', folderName);
       await mkdirp(studentFolderPath); // Ensure the folder exists
 
       // Get file path and move the file to the student's folder
@@ -46,23 +65,13 @@ exports.createStudent = async (req, res) => {
       const newImagePath = path.join(studentFolderPath, req.files.profileImage[0].originalname);
       fs.renameSync(imagePath, newImagePath); // Move file to the new folder
 
-      // Update the profile image path
-      profileImageUrl = path.join('uploads', studentId, req.files.profileImage[0].originalname);
+      // Construct the full URL of the image
+      profileImageUrl = `${req.protocol}://${req.get('host')}/files/${folderName}/${req.files.profileImage[0].originalname}`;
     }
 
-    // Function to generate a sequential unique ID
-    async function generateUniqueId() {
-      const currentYear = new Date().getFullYear();
-      const counter = await Counter.findOneAndUpdate(
-        { key: `iTrain-${currentYear}` },
-        { $inc: { value: 1 } },
-        { new: true, upsert: true }
-      );
-      const formattedValue = String(counter.value).padStart(4, '0');
-      return `iTrain-${currentYear}${formattedValue}`;
+    if (!studentId) {
+      studentId = await generateUniqueId();
     }
-
-    const studentId = await generateUniqueId();
 
     const student = await Student.create({
       Id: studentId,
@@ -79,7 +88,7 @@ exports.createStudent = async (req, res) => {
       country,
       zipcode,
       password: hashedPassword,
-      profileImage: profileImageUrl,
+      profileImage: profileImageUrl, // Save the full URL of the profile image
       role: 'Student',
     });
 
@@ -145,7 +154,7 @@ exports.updateStudent = async (req, res) => {
     const { id } = req.params;
     const updateData = {};
 
-    // Validate input fields
+    // Validate input fields and update the corresponding fields
     if (req.body.firstName) updateData.firstName = req.body.firstName;
     if (req.body.lastName) updateData.lastName = req.body.lastName;
     if (req.body.gender) updateData.gender = req.body.gender;
@@ -174,7 +183,7 @@ exports.updateStudent = async (req, res) => {
       updateData.password = hashedPassword;
     }
 
-    // Check if files are provided
+    // Check if files are provided for profile image update
     let profileImageUrl = null;
     if (req.files?.profileImage) {
       // Get the current student from the database
@@ -186,8 +195,11 @@ exports.updateStudent = async (req, res) => {
         });
       }
 
+      // Use folderName from the current student or generate one
+      const folderName = student.Id;
+
       // Generate student folder path
-      const studentFolderPath = path.join(__dirname, '..', 'uploads', student.Id);
+      const studentFolderPath = path.join(__dirname, '..', 'uploads', folderName);
       await mkdirp(studentFolderPath); // Ensure the folder exists
 
       // Remove old profile image if exists
@@ -203,8 +215,8 @@ exports.updateStudent = async (req, res) => {
       const newImagePath = path.join(studentFolderPath, req.files.profileImage[0].originalname);
       fs.renameSync(imagePath, newImagePath); // Move file to the new folder
 
-      // Set the new profile image path
-      profileImageUrl = path.join('uploads', student.Id, req.files.profileImage[0].originalname);
+      // Construct the new profile image URL
+      profileImageUrl = `${req.protocol}://${req.get('host')}/files/${folderName}/${req.files.profileImage[0].originalname}`;
       updateData.profileImage = profileImageUrl; // Update the profile image path
     }
 
@@ -230,7 +242,6 @@ exports.updateStudent = async (req, res) => {
     });
   }
 };
-
 
 
 exports.deleteStudent = async (req, res) => {

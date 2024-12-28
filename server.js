@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const path = require('path');
 const courseRoutes = require('./Routes/courseRoute');
 const trainerRoutes = require('./Routes/trainerRoute');
 const studentRoutes = require('./Routes/studentRoute');
@@ -39,6 +40,7 @@ app.use('/project', projectRoutes);
 app.use('/test', testRoutes);
 app.use('/doubtSession', doubtSessionRoutes);
 app.use('/technicalSupport', technicalSupportRoutes)
+app.use('/files', express.static(path.join(__dirname, 'uploads')));
 
 //test route
 app.get('/', (req, res) => {

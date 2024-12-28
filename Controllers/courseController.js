@@ -23,34 +23,45 @@ exports.createCourse = async (req, res) => {
       courseDuration,
       courseVideoTitle,
       courseLevel,
+      whatYouWillLearn,
+      keyFeatures,
+      whoCanEnroll,
+      itSkillsCovered,
+      whyShouldJoin,
+      certification,
     } = req.body;
 
     const basePath = path.resolve("./uploads");
     const courseFolderName = slugify(courseTitle, { lower: true, strict: true });
     const courseFolderPath = path.join(basePath, courseFolderName);
 
+    // Ensure the course folder exists
     if (!fs.existsSync(courseFolderPath)) {
       fs.mkdirSync(courseFolderPath, { recursive: true });
     }
 
-    // Save course video locally
+    // Handle course video upload and URL generation
     const courseVideoPath = path.join(courseFolderPath, req.files.courseVideo[0].originalname);
     fs.renameSync(req.files.courseVideo[0].path, courseVideoPath);
+    const courseVideoUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
 
-    // Save course thumbnail locally
+    // Handle course thumbnail upload and URL generation
     const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
     fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
+    const courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
 
-    // Save course attachments locally
-    const courseAttachmentPaths = [];
+    // Handle course attachments (if any) and URL generation
+    const courseAttachmentUrls = [];
     if (req.files.courseAttachment) {
       for (const file of req.files.courseAttachment) {
         const attachmentPath = path.join(courseFolderPath, file.originalname);
         fs.renameSync(file.path, attachmentPath);
-        courseAttachmentPaths.push(attachmentPath);
+        const attachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
+        courseAttachmentUrls.push(attachmentUrl);
       }
     }
 
+    // Create the course in the database
     const course = await Course.create({
       courseTitle,
       courseDescription,
@@ -58,9 +69,15 @@ exports.createCourse = async (req, res) => {
       courseDuration,
       courseVideoTitle,
       courseLevel,
-      courseVideo: courseVideoPath,
-      courseThumbnail: courseThumbnailPath,
-      courseAttachment: courseAttachmentPaths,
+      courseVideo: courseVideoUrl,
+      courseThumbnail: courseThumbnailUrl,
+      courseAttachment: courseAttachmentUrls,
+      whatYouWillLearn,
+      keyFeatures,
+      whoCanEnroll,
+      itSkillsCovered,
+      whyShouldJoin,
+      certification,
     });
 
     res.status(201).json({
@@ -76,6 +93,7 @@ exports.createCourse = async (req, res) => {
     });
   }
 };
+
 
 // Get all courses
 exports.getAllCourses = async (req, res) => {
@@ -107,38 +125,50 @@ exports.updateCourseById = async (req, res) => {
       courseDuration,
       courseVideoTitle,
       courseLevel,
+      keyFeatures,
+      whoCanEnroll,
+      itSkillsCovered,
+      whyShouldJoin,
+      certification,
     } = req.body;
 
-    const courseFolderPath = path.resolve(`./uploads/${slugify(courseTitle, { lower: true, strict: true })}`);
+    // Generate folder path for the course
+    const courseFolderName = slugify(courseTitle, { lower: true, strict: true });
+    const courseFolderPath = path.resolve(`./uploads/${courseFolderName}`);
 
+    // Ensure the folder exists
     if (!fs.existsSync(courseFolderPath)) {
       fs.mkdirSync(courseFolderPath, { recursive: true });
     }
 
-    // Save updated course video locally
-    let courseVideoPath;
+    // Handle the course video file
+    let courseVideoUrl = null;
     if (req.files.courseVideo) {
-      courseVideoPath = path.join(courseFolderPath, req.files.courseVideo[0].originalname);
+      const courseVideoPath = path.join(courseFolderPath, req.files.courseVideo[0].originalname);
       fs.renameSync(req.files.courseVideo[0].path, courseVideoPath);
+      courseVideoUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
     }
 
-    // Save updated course thumbnail locally
-    let courseThumbnailPath;
+    // Handle the course thumbnail file
+    let courseThumbnailUrl = null;
     if (req.files.courseThumbnail) {
-      courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
+      const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
       fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
+      courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
     }
 
-    // Save updated course attachments locally
-    const courseAttachmentPaths = [];
+    // Handle course attachments (if any)
+    const courseAttachmentUrls = [];
     if (req.files.courseAttachment) {
       for (const file of req.files.courseAttachment) {
         const attachmentPath = path.join(courseFolderPath, file.originalname);
         fs.renameSync(file.path, attachmentPath);
-        courseAttachmentPaths.push(attachmentPath);
+        const attachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
+        courseAttachmentUrls.push(attachmentUrl);
       }
     }
 
+    // Find and update the course in the database
     const course = await Course.findByIdAndUpdate(
       req.params.id,
       {
@@ -148,16 +178,34 @@ exports.updateCourseById = async (req, res) => {
         courseDuration,
         courseVideoTitle,
         courseLevel,
-        courseVideo: courseVideoPath,
-        courseThumbnail: courseThumbnailPath,
-        courseAttachment: courseAttachmentPaths,
+        courseVideo: courseVideoUrl,      // Save video URL
+        courseThumbnail: courseThumbnailUrl,  // Save thumbnail URL
+        courseAttachment: courseAttachmentUrls, // Save attachment URLs
+        keyFeatures,
+        whoCanEnroll,
+        itSkillsCovered,
+        whyShouldJoin,
+        certification,
       },
       { new: true }
     );
 
-    res.status(200).json({ course });
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Course updated successfully',
+      course,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Course update failed',
+      error: error.message,
+
+    });
   }
 };
 

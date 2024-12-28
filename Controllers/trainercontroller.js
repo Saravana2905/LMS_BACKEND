@@ -1,4 +1,3 @@
-const cloudinary = require("../Middleware/cloudinary");
 const Trainer = require("../Models/trainermodel");
 const path = require("path");
 const fs = require('fs');
@@ -11,31 +10,35 @@ exports.createTrainer = async (req, res) => {
       mobileNumber,
       mailId,
       city,
-      myCourse
+      myCourse,
     } = req.body;
 
     let imageUrl, resumeUrl;
 
-    // Upload trainer image
+    // Folder path to store the trainer's files
+    const trainerFolderName = slugify(`${firstname}-${lastname}`, { lower: true, strict: true });
+    const trainerFolderPath = path.join(__dirname, '..', 'uploads', trainerFolderName);
+
+    // Ensure the trainer folder exists
+    if (!fs.existsSync(trainerFolderPath)) {
+      fs.mkdirSync(trainerFolderPath, { recursive: true });
+    }
+
+    // Upload trainer image and get the image URL
     if (req.files.image) {
-      const imagePath = path.resolve(req.files.image[0].path);
-      const imageUpload = await cloudinary.uploader.upload(imagePath, {
-        resource_type: "image",
-      });
-      imageUrl = imageUpload.secure_url;
-      fs.unlinkSync(imagePath);
+      const imagePath = path.join(trainerFolderPath, req.files.image[0].originalname);
+      fs.renameSync(req.files.image[0].path, imagePath);
+      imageUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.image[0].originalname}`;
     }
 
-    // Upload trainer resume
+    // Upload trainer resume and get the resume URL
     if (req.files.resume) {
-      const resumePath = path.resolve(req.files.resume[0].path);
-      const resumeUpload = await cloudinary.uploader.upload(resumePath, {
-        resource_type: "auto",
-      });
-      resumeUrl = resumeUpload.secure_url;
-      fs.unlinkSync(resumePath);
+      const resumePath = path.join(trainerFolderPath, req.files.resume[0].originalname);
+      fs.renameSync(req.files.resume[0].path, resumePath);
+      resumeUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.resume[0].originalname}`;
     }
 
+    // Create the trainer record in the database
     const trainer = await Trainer.create({
       firstname,
       lastname,
@@ -45,13 +48,13 @@ exports.createTrainer = async (req, res) => {
       resume: resumeUrl,
       city,
       myCourse,
-      role: "Trainer"
+      role: "Trainer",
     });
 
-    res.status(201).json({ 
-        success: true, 
-        message: "Trainer created successfully", 
-        trainer 
+    res.status(201).json({
+      success: true,
+      message: "Trainer created successfully",
+      trainer,
     });
   } catch (error) {
     res.status(400).json({
@@ -61,6 +64,7 @@ exports.createTrainer = async (req, res) => {
     });
   }
 };
+
 
 exports.getTrainers = async (req, res) => {
   try {
@@ -96,28 +100,31 @@ exports.updateTrainer = async (req, res) => {
     if (req.body.myCourse) updateData.myCourse = req.body.myCourse;
     if (!req.body.role) updateData.role = "Trainer";
 
+    // Folder path to store trainer's updated files
+    const trainerFolderName = slugify(`${updateData.firstname}-${updateData.lastname}`, { lower: true, strict: true });
+    const trainerFolderPath = path.join(__dirname, '..', 'uploads', trainerFolderName);
+
+    // Ensure the trainer folder exists
+    if (!fs.existsSync(trainerFolderPath)) {
+      fs.mkdirSync(trainerFolderPath, { recursive: true });
+    }
+
     let imageUrl, resumeUrl;
 
     // Upload trainer image if provided
     if (req.files && req.files.image) {
-      const imagePath = path.resolve(req.files.image[0].path);
-      const imageUpload = await cloudinary.uploader.upload(imagePath, {
-        resource_type: "image",
-      });
-      imageUrl = imageUpload.secure_url;
-      updateData.image = imageUrl; // Add image URL to updateData
-      fs.unlinkSync(imagePath);
+      const imagePath = path.join(trainerFolderPath, req.files.image[0].originalname);
+      fs.renameSync(req.files.image[0].path, imagePath); // Save the image locally
+      imageUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.image[0].originalname}`;
+      updateData.image = imageUrl; // Update the image URL
     }
 
     // Upload trainer resume if provided
     if (req.files && req.files.resume) {
-      const resumePath = path.resolve(req.files.resume[0].path);
-      const resumeUpload = await cloudinary.uploader.upload(resumePath, {
-        resource_type: "auto",
-      });
-      resumeUrl = resumeUpload.secure_url;
-      updateData.resume = resumeUrl; // Add resume URL to updateData
-      fs.unlinkSync(resumePath);
+      const resumePath = path.join(trainerFolderPath, req.files.resume[0].originalname);
+      fs.renameSync(req.files.resume[0].path, resumePath); // Save the resume locally
+      resumeUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.resume[0].originalname}`;
+      updateData.resume = resumeUrl; // Update the resume URL
     }
 
     const trainer = await Trainer.findByIdAndUpdate(id, updateData, { new: true });
@@ -130,10 +137,10 @@ exports.updateTrainer = async (req, res) => {
     }
 
     console.log("Updated Trainer: ", trainer);
-    res.status(200).json({ 
-      success: true, 
-      message: "Trainer updated successfully", 
-      trainer 
+    res.status(200).json({
+      success: true,
+      message: "Trainer updated successfully",
+      trainer,
     });
   } catch (error) {
     console.error("Update Error: ", error);
