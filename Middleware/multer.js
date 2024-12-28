@@ -5,7 +5,7 @@ const fs = require('fs');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Use a temporary or default upload directory
-    const defaultUploadPath = path.join(__dirname, '..', 'temp_uploads');
+    const defaultUploadPath = path.join(__dirname, '..', 'uploads/default');
     
     // Ensure the directory exists
     if (!fs.existsSync(defaultUploadPath)) {
