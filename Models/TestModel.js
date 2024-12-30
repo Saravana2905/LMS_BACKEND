@@ -21,9 +21,8 @@ const TestSchema = mongoose.Schema({
         ref: 'Course',
         required: true
     },
-    batch: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Batch',
+    courseLevel:{
+        type: String,
         required: true
     },
     question1: QuestionSchema,
@@ -50,7 +49,8 @@ const TestSchema = mongoose.Schema({
     question22: QuestionSchema,
     question23: QuestionSchema,
     question24: QuestionSchema,
-    question25: QuestionSchema
+    question25: QuestionSchema,
+
 });
 
 const Test = mongoose.model('Test', TestSchema);

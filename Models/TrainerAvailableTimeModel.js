@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
-const TrainerAvailableTimeSchema = mongoose.Schema({
-    trainer: {
-        type: Schema.Types.ObjectId,
-        ref: 'Trainer',
-        required: true
+const TrainerAvailableTimeSchema = new mongoose.Schema({
+    trainerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Trainer'
     },
     availableDate: {
-        type: Date,
+        type: String,
         required: true
     },
     startTime: {
@@ -17,9 +17,12 @@ const TrainerAvailableTimeSchema = mongoose.Schema({
     endTime: {
         type: String,
         required: true
+    },
+    status: {
+        type: String,
+        enum: ['available', 'booked', 'cancelled'],
+        default: 'available' // Default status is available
     }
 });
 
-const TrainerAvailableTime = mongoose.model('TrainerAvailableTime', TrainerAvailableTimeSchema);
-
-module.exports = TrainerAvailableTime;
+module.exports = mongoose.model('TrainerAvailableTime', TrainerAvailableTimeSchema);

@@ -1,19 +1,23 @@
 const DoubtSession = require('../Models/DoubtSessionModel');
 const Student = require('../Models/StudentModel');
 const Trainer = require('../Models/trainermodel');
-const Batch = require('../Models/BatchModel');
+const TrainerAvailableTime = require('../Models/TrainerAvailableTimeModel');
 
 exports.createDoubtSession = async (req, res) => {
     try {
-        const { doubt, studentId, trainerId, batchId, sessionDate, sessionTime, timeZone, sessionDuration, trainerAvailbletime } = req.body;
+        const { doubt, studentId, trainerId, sessionDate, sessionTime, timeZone, trainerAvailbletime } = req.body;
         const student = await Student.findById(studentId);
         const trainer = await Trainer.findById(trainerId);
+        const trainerAvailableTime = await TrainerAvailableTime.findById(trainerId);
 
         if (!student) {
             return res.status(404).json({ message: 'Student not found' });
         }
         if (!trainer) {
             return res.status(404).json({ message: 'Trainer not found' });
+        }
+        if (!trainerAvailableTime) {
+            return res.status(404).json({ message: 'Trainer available time not found' });
         }
 
         const newDoubtSession = new DoubtSession({
@@ -23,7 +27,7 @@ exports.createDoubtSession = async (req, res) => {
             sessionDate,
             sessionTime,
             timeZone,
-            trainerAvailbletime,
+            trainerAvailbletime : trainerAvailableTime,
             status: 'pending'
         });
 

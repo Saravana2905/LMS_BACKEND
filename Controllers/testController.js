@@ -1,26 +1,20 @@
 const Test = require('../Models/TestModel');
 const Course = require('../Models/courseModel');
-const Batch = require('../Models/BatchModel');
 
 exports.createTest = async (req, res) => {
     try {
-        const { course, batch, ...questions } = req.body;
-
+        const { course, ...questions } = req.body;
+        console.log(req.body);
         // Find the course and batch by their IDs
         const courseExists = await Course.findById(course);
-        const batchExists = await Batch.findById(batch);
 
         if (!courseExists) {
             return res.status(404).json({ message: 'Course not found' });
-        }
-        if (!batchExists) {
-            return res.status(404).json({ message: 'Batch not found' });
         }
 
         // Create a new test
         const newTest = new Test({
             course,
-            batch,
             ...questions
         });
 
@@ -34,7 +28,7 @@ exports.createTest = async (req, res) => {
 
 exports.getTests = async (req, res) => {
     try {
-        const tests = await Test.find().populate('course batch');
+        const tests = await Test.find()
         res.status(200).json(tests);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -93,3 +87,18 @@ exports.deleteTest = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+
+exports.getTestbyCourseId = async (req, res)=>{
+    const Id = req.params.id;
+    try {
+        const test = await Test.find({course: Id});
+        if (!test){
+            return res.status(404).json({success : false, message : 'Test not found'});
+        }
+
+        res.status(200).json({success : true, test});
+    } catch (error) {
+        res.status(500).json({success : false, message : 'Server error', error : error.message});
+    }
+}
