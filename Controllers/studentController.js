@@ -10,7 +10,6 @@ exports.createStudent = async (req, res) => {
     const {
       firstName,
       lastName,
-      gender,
       Dob,
       email,
       mobile,
@@ -22,7 +21,7 @@ exports.createStudent = async (req, res) => {
       zipcode,
       password,
     } = req.body;
-
+    console.log("Request ---->",req.body);
     // Function to generate a sequential unique ID
     async function generateUniqueId() {
       const currentYear = new Date().getFullYear();
@@ -38,6 +37,7 @@ exports.createStudent = async (req, res) => {
     // Check if the student already exists
     const oldStudent = await Student.findOne({ email });
     if (oldStudent) {
+      console.log("Student already exists with this email");
       return res.status(400).json({
         success: false,
         message: 'Student already exists with this email',
@@ -77,7 +77,6 @@ exports.createStudent = async (req, res) => {
       Id: studentId,
       firstName,
       lastName,
-      gender,
       Dob,
       email,
       mobile,
@@ -91,13 +90,14 @@ exports.createStudent = async (req, res) => {
       profileImage: profileImageUrl, // Save the full URL of the profile image
       role: 'Student',
     });
-
+    console.log("Student ---->",student);
     res.status(201).json({
       success: true,
       message: 'Student created successfully',
       student,
     });
   } catch (error) {
+    console.log("Error ---->",error);
     res.status(400).json({
       success: false,
       message: 'Student creation failed',

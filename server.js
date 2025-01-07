@@ -14,7 +14,8 @@ const projectRoutes = require('./Routes/projectRoute');
 const testRoutes = require('./Routes/testRoute');
 const doubtSessionRoutes = require('./Routes/doubtSessionRoute');
 const technicalSupportRoutes = require('./Routes/technicalSupportRoute');
-const trainerAvailableTimeRoutes = require('./Routes/traineravailabletimeRoute');   
+const trainerAvailableTimeRoutes = require('./Routes/traineravailabletimeRoute'); 
+const webinarRegisterRoutes = require('./Routes/webinarRegisterRoute');  
 const cors = require('cors');
 require('dotenv').config();
 
@@ -43,6 +44,7 @@ app.use('/doubtSession', doubtSessionRoutes);
 app.use('/technicalSupport', technicalSupportRoutes)
 app.use('/files', express.static(path.join(__dirname, 'uploads')));
 app.use('/trainerAvailableTime', trainerAvailableTimeRoutes);
+app.use('/webinarRegister', webinarRegisterRoutes)
 
 //test route
 app.get('/', (req, res) => {

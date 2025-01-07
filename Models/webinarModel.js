@@ -14,6 +14,7 @@ const webinarSchema =  mongoose.Schema({
     altName: { type: String, required: true }
   },
   trainerName: { type: mongoose.Schema.Types.ObjectId, ref: 'Trainer', required: true },
+  desc:{type: String, required:true},
   joinUrl : { type: String, required: true }, 
 });
 

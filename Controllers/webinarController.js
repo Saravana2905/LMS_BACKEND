@@ -4,7 +4,7 @@ const Trainer = require('../Models/trainermodel');
 const Course = require('../Models/courseModel');
 
 exports.createWebinar = async (req, res) => {
-  const { webinarTitle, trainerName, date, time, course, courseLevel, timeZone } = req.body;
+  const { webinarTitle, trainerName, date, time, course, courseLevel, desc, timeZone } = req.body;
 
   const account_id = 'g6uJyuGmT3iIxvcrbRoFEw';
   const client_id = 'mpCvNIyGRX2CpsNAOEfj8g';
@@ -68,6 +68,7 @@ exports.createWebinar = async (req, res) => {
       course,
       courseLevel,
       timeZone,
+      desc,
       joinUrl: webinarResponse.data.join_url,
     });
 
