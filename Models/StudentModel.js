@@ -62,6 +62,10 @@ const studentSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    courseLevel:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course"
+    },
     courses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course"

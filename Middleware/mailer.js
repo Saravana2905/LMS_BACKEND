@@ -1,7 +1,9 @@
 // emailMiddleware.js
 
 const sendEmailMiddleware = (req, res, next) => {
+    console.log("--->",req.body)
   const emailData = req.body;
+  console.log(emailData)
 
   if (
     !emailData.email ||
@@ -21,7 +23,7 @@ const sendEmailMiddleware = (req, res, next) => {
     to: emailData.email, // Recipient's email
     subject: `Webinar Registration: ${emailData.webinarTitle}`,
     html: `
-        <!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="en">
 

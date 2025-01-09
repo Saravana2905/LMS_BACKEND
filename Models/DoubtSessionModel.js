@@ -15,37 +15,19 @@ const DoubtSessionSchema = mongoose.Schema({
         ref: 'Trainer',
         required: true
     },
-    batch:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Batch',
-        required: true
-    },
-    status:{
-        type: String,
-        values: ['pending', 'resolved'],
-        required: true
-    },
     joinUrl:{
         type: String,
         required: false
-    },
-    sessionDate:{
-        type: Date,
-        required: true
     },
     sessionTime:{
         type: String,
         required: true
     },
+    sessionDate:{
+        type: Date,
+        required: true
+    },
     timeZone:{
-        type: String,
-        required: true
-    },
-    sessionDuration:{
-        type: Number,
-        required: true
-    },
-    trainerAvailbletime:{
         type: String,
         required: true
     }

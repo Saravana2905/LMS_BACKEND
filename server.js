@@ -5,6 +5,7 @@ const path = require('path');
 const courseRoutes = require('./Routes/courseRoute');
 const trainerRoutes = require('./Routes/trainerRoute');
 const studentRoutes = require('./Routes/studentRoute');
+const adminRoutes = require('./Routes/adminRoute')
 const meetingRoutes = require('./Routes/meetingRoute');
 const webinarRoutes = require('./Routes/webinarRoute');
 const mailRoutes = require('./Routes/mailRoutes');
@@ -16,6 +17,7 @@ const doubtSessionRoutes = require('./Routes/doubtSessionRoute');
 const technicalSupportRoutes = require('./Routes/technicalSupportRoute');
 const trainerAvailableTimeRoutes = require('./Routes/traineravailabletimeRoute'); 
 const webinarRegisterRoutes = require('./Routes/webinarRegisterRoute');  
+const loginRoutes = require('./Routes/loginRoute');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -30,9 +32,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('',loginRoutes)
 app.use('/courses', courseRoutes);
 app.use('/trainer', trainerRoutes);
 app.use('/student', studentRoutes);
+app.use('/admin', adminRoutes)
 app.use('/meeting', meetingRoutes);
 app.use('/webinar', webinarRoutes);
 app.use('/mail', mailRoutes);

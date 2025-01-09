@@ -22,8 +22,7 @@ const TestSchema = mongoose.Schema({
         required: true
     },
     courseLevel:{
-        type: String,
-        required: true
+        
     },
     question1: QuestionSchema,
     question2: QuestionSchema,

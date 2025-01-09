@@ -1,5 +1,6 @@
 const Student = require('../Models/StudentModel');
 const Trainer = require('../Models/trainermodel');
+const Admin = require('../Models/adminModel')
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt'); // Assuming you're hashing passwords for security
 
@@ -15,10 +16,10 @@ exports.login = async (req, res) => {
         }
 
         // Check in the Student collection
-        let user = await Student.findOne({ email });
-        if (user) {
+        let student = await Student.findOne({ email });
+        if (student) {
             // Verify password
-            const isMatch = await bcrypt.compare(password, user.password);
+            const isMatch = await bcrypt.compare(password, student.password);
             if (!isMatch) {
                 return res.status(401).json({
                     success: false,
@@ -28,23 +29,52 @@ exports.login = async (req, res) => {
 
             // Generate token
             const token = jwt.sign(
-                { email: user.email, role: user.role, Id: user._id },
+                { email: student.email, role: student.role, Id: student._id },
                 process.env.JWT_SECRET,
                 { expiresIn: "1h" }
             );
 
             return res.status(200).json({
                 success: true,
-                message: "Login successful",
+                message: "Login successful --> student",
                 token,
+                role:student.role
             });
+        } else {
+            let admin = await Admin.findOne({ email });
+            if (admin) {
+                // Verify password
+                const isMatch = await bcrypt.compare(password, admin.password);
+                if (!isMatch) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "Invalid credentials",
+                    });
+                }
+    
+                // Generate token
+                const token = jwt.sign(
+                    { email: admin.email, role: admin.role, Id: admin._id },
+                    process.env.JWT_SECRET,
+                    { expiresIn: "1h" }
+                );
+    
+                return res.status(200).json({
+                    success: true,
+                    message: "Login successful ---> Admin",
+                    token,
+                    role: admin.role
+                });
         }
+    }
+
+
 
         // Check in the Trainer collection
-        user = await Trainer.findOne({ email });
-        if (user) {
+        let trainer = await Trainer.findOne({ email });
+        if (trainer) {
             // Verify password
-            const isMatch = await bcrypt.compare(password, user.password);
+            const isMatch = await bcrypt.compare(password, trainer.password);
             if (!isMatch) {
                 return res.status(401).json({
                     success: false,
@@ -54,15 +84,16 @@ exports.login = async (req, res) => {
 
             // Generate token
             const token = jwt.sign(
-                { email: user.email, role: user.role, Id: user._id },
+                { email: trainer.email, role: trainer.role, Id: trainer._id },
                 process.env.JWT_SECRET,
                 { expiresIn: "1h" }
             );
 
             return res.status(200).json({
                 success: true,
-                message: "Login successful",
+                message: "Login successful ---> Trainer",
                 token,
+                role:trainer.role
             });
         }
 

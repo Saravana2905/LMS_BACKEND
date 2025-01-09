@@ -4,6 +4,7 @@ const mkdirp = require('mkdirp');
 const bcrypt = require('bcrypt');
 const Counter = require('../Models/counterModel'); // Counter model for tracking the sequence
 const Student = require('../Models/StudentModel');
+const jwt = require('jsonwebtoken')
 
 exports.createStudent = async (req, res) => {
   try {
@@ -73,6 +74,15 @@ exports.createStudent = async (req, res) => {
       studentId = await generateUniqueId();
     }
 
+    const updatedStudent = await Student.findByIdAndUpdate(
+      studentId,
+      {
+        $push: { courses: courseId },
+        batchNumber: latestBatch.batchNumber,
+      },
+      { new: true }
+    );
+
     const student = await Student.create({
       Id: studentId,
       firstName,
@@ -87,7 +97,6 @@ exports.createStudent = async (req, res) => {
       country,
       zipcode,
       password: hashedPassword,
-      profileImage: profileImageUrl, // Save the full URL of the profile image
       role: 'Student',
     });
     console.log("Student ---->",student);
@@ -316,7 +325,7 @@ console.log( student,"test");
         lastName: student.lastName,
         email: student.email,
         role: student.role,
-      },
+      }
     });
   } catch (error) {
     res.status(500).json({
