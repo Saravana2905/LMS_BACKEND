@@ -38,6 +38,7 @@ exports.login = async (req, res) => {
                 success: true,
                 message: "Login successful --> student",
                 token,
+                student,
                 role:student.role
             });
         } else {
@@ -63,6 +64,8 @@ exports.login = async (req, res) => {
                     success: true,
                     message: "Login successful ---> Admin",
                     token,
+                    admin,
+                    adminName: admin.Name,
                     role: admin.role
                 });
         }
@@ -93,6 +96,7 @@ exports.login = async (req, res) => {
                 success: true,
                 message: "Login successful ---> Trainer",
                 token,
+                trainer,
                 role:trainer.role
             });
         }

@@ -10,7 +10,6 @@ exports.createTrainer = async (req, res) => {
       lastname,
       mobileNumber,
       mailId,
-      city,
       myCourse,
     } = req.body;
 
@@ -18,7 +17,7 @@ exports.createTrainer = async (req, res) => {
 
     // Folder path to store the trainer's files
     const trainerFolderName = slugify(`${firstname}-${lastname}`, { lower: true, strict: true });
-    const trainerFolderPath = path.join(__dirname,  '..', '..', '..', '../../../uploads', trainerFolderName);
+    const trainerFolderPath = path.join(__dirname,  '..', '..', '..', 'uploads', trainerFolderName);
 
     // Ensure the trainer folder exists
     if (!fs.existsSync(trainerFolderPath)) {
@@ -47,7 +46,6 @@ exports.createTrainer = async (req, res) => {
       mailId,
       image: imageUrl,
       resume: resumeUrl,
-      city,
       myCourse,
       role: "Trainer",
     });
@@ -97,13 +95,12 @@ exports.updateTrainer = async (req, res) => {
     if (req.body.lastname) updateData.lastname = req.body.lastname;
     if (req.body.mobileNumber) updateData.mobileNumber = req.body.mobileNumber;
     if (req.body.mailId) updateData.mailId = req.body.mailId;
-    if (req.body.city) updateData.city = req.body.city;
     if (req.body.myCourse) updateData.myCourse = req.body.myCourse;
     if (!req.body.role) updateData.role = "Trainer";
 
     // Folder path to store trainer's updated files
     const trainerFolderName = slugify(`${updateData.firstname}-${updateData.lastname}`, { lower: true, strict: true });
-    const trainerFolderPath = path.join(__dirname, '..', 'uploads', trainerFolderName);
+    const trainerFolderPath = path.join(__dirname, '..','..', '..', 'uploads', trainerFolderName);
 
     // Ensure the trainer folder exists
     if (!fs.existsSync(trainerFolderPath)) {

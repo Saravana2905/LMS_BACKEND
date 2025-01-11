@@ -46,7 +46,7 @@ app.use('/project', projectRoutes);
 app.use('/test', testRoutes);
 app.use('/doubtSession', doubtSessionRoutes);
 app.use('/technicalSupport', technicalSupportRoutes)
-app.use('/files', express.static(path.join(__dirname, '../../uploads')));
+app.use('/files', express.static(path.join(__dirname, '..', '..', '..', 'uploads')));
 app.use('/trainerAvailableTime', trainerAvailableTimeRoutes);
 app.use('/webinarRegister', webinarRegisterRoutes)
 

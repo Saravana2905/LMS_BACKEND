@@ -32,7 +32,7 @@ exports.createCourse = async (req, res) => {
       courseCurriculum,
     } = req.body;
 
-    const basePath = path.resolve("../../uploads");
+    const basePath = path.resolve("../../../uploads");
     const courseFolderName = slugify(courseTitle, { lower: true, strict: true });
     const courseFolderPath = path.join(basePath, courseFolderName);
 
@@ -59,10 +59,18 @@ exports.createCourse = async (req, res) => {
       fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
       const courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
       
+      // Initialize the variable
+      let courseCurriculumAttachmentUrl = null;
+
       // Check if courseCurriculumAttachment is provided
-      const courseCurriculumAttachmentPath = path.join(courseFolderPath, file.originalname);
-      fs.renameSync(file.path, courseCurriculumAttachmentPath);
-      const courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
+      if (req.files.courseCurriculumAttachment && req.files.courseCurriculumAttachment.length > 0) {
+        const courseCurriculumAttachmentPath = path.join(courseFolderPath, req.files.courseCurriculumAttachment[0].originalname);
+        fs.renameSync(req.files.courseCurriculumAttachment[0].path, courseCurriculumAttachmentPath);
+        courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
+      } else {
+        console.error('Course curriculum attachment not provided');
+        // Optionally, set a default URL or handle the absence of the file
+      }
       
       
       // Handle course attachments (if any) and URL generation
@@ -154,7 +162,7 @@ exports.updateCourseById = async (req, res) => {
 
     // Generate folder path for the course
     const courseFolderName = slugify(courseTitle, { lower: true, strict: true });
-    const courseFolderPath = path.resolve(`../../uploads/${courseFolderName}`);
+    const courseFolderPath = path.resolve(`../../../uploads/${courseFolderName}`);
 
     // Ensure the folder exists
     if (!fs.existsSync(courseFolderPath)) {
@@ -183,6 +191,10 @@ exports.updateCourseById = async (req, res) => {
       const courseCurriculumAttachmentPath = path.join(courseFolderPath, req.files.courseCurriculumAttachment[0].originalname);
       fs.renameSync(req.files.courseCurriculumAttachment[0].path, courseCurriculumAttachmentPath);
       courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
+    } else {
+      // Handle the case where the file is not provided
+      console.error('Course curriculum attachment not provided');
+      // You might want to return an error response or set a default value
     }
 
     // Handle course attachments (if any)
@@ -244,7 +256,7 @@ exports.deleteCourseById = async (req, res) => {
     const course = await Course.findByIdAndDelete(req.params.id);
 
     if (course) {
-      const courseFolderPath = path.resolve(`../../uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
+      const courseFolderPath = path.resolve(`../../../uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
       if (fs.existsSync(courseFolderPath)) {
         fs.rmSync(courseFolderPath, { recursive: true, force: true });
       }
@@ -261,7 +273,7 @@ exports.deleteAllCourses = async (req, res) => {
   try {
     const courses = await Course.find();
     courses.forEach(course => {
-      const courseFolderPath = path.resolve(`../../uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
+      const courseFolderPath = path.resolve(`../../../uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
       if (fs.existsSync(courseFolderPath)) {
         fs.rmSync(courseFolderPath, { recursive: true, force: true });
       }

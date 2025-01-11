@@ -30,10 +30,6 @@ const trainerSchema = mongoose.Schema({
       default: [],
       required: true
     },
-    city: {
-      type: String,
-      required: true
-    },
     role:{
       type: String,
       default: "Trainer",

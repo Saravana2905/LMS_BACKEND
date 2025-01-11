@@ -17,7 +17,8 @@ router.get('/getCourseById/:id', getCourseById);
 router.put('/updateCourse/:id',upload.fields([
     { name: 'courseVideo', maxCount: 1 },
     { name: 'courseThumbnail', maxCount: 1 },
-    { name: 'courseAttachment', maxCount: 10 }
+    { name: 'courseAttachment', maxCount: 10 },
+    {name: 'courseCurriculumAttachment', maxCount: 1 }
 ]), updateCourseById);
 
 router.delete('/deleteCourse/:id', deleteCourseById);

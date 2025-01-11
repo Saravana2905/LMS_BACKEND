@@ -5,7 +5,7 @@ const fs = require('fs');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Use a temporary or default upload directory
-    const defaultUploadPath = path.join(__dirname, '..','..', '../../uploads/default');
+    const defaultUploadPath = path.join(__dirname, '..', '..', 'uploads/default');
     
     // Ensure the directory exists
     if (!fs.existsSync(defaultUploadPath)) {
@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 
 // Multer file filter to validate file types
 const fileFilter = (req, file, cb) => {
-  const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.mp4', '.avi', '.mov', '.mkv', '.flv', '.pdf', '.doc', '.docx', '.ppt', '.txt', '.xls', '.xlsx'];
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.mp4', '.avi', '.mov', '.mkv', '.flv', '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.txt', '.xls', '.xlsx'];
   const ext = path.extname(file.originalname).toLowerCase();
 
   if (!validExtensions.includes(ext)) {
