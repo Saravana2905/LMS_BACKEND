@@ -58,7 +58,7 @@ exports.createStudent = async (req, res) => {
       const folderName = req.body.folderName || studentId;
 
       // Generate student folder if not exists
-      const studentFolderPath = path.join(__dirname, '..', 'uploads', folderName);
+      const studentFolderPath = path.join(__dirname, '..', '../../uploads', folderName);
       await mkdirp(studentFolderPath); // Ensure the folder exists
 
       // Get file path and move the file to the student's folder
@@ -208,12 +208,12 @@ exports.updateStudent = async (req, res) => {
       const folderName = student.Id;
 
       // Generate student folder path
-      const studentFolderPath = path.join(__dirname, '..', 'uploads', folderName);
+      const studentFolderPath = path.join(__dirname, '..', '../../uploads', folderName);
       await mkdirp(studentFolderPath); // Ensure the folder exists
 
       // Remove old profile image if exists
       if (student.profileImage) {
-        const oldImagePath = path.join(__dirname, '..', student.profileImage);
+        const oldImagePath = path.join(__dirname, '../../', student.profileImage);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath); // Remove the old image
         }

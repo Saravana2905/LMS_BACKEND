@@ -68,6 +68,15 @@ const courseSchema = mongoose.Schema({
         type: String,
         required: false
     },
+    courseCurriculum:{
+        type: [String],
+        default: [],
+        required: true
+    },
+    courseCurriculumAttachment:{
+        type: String,
+        required: false
+    },
   batches: [
     {
       type: mongoose.Schema.Types.ObjectId,

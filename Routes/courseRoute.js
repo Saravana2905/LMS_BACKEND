@@ -6,7 +6,8 @@ const upload = require('../Middleware/multer');
 router.post('/createCourse', upload.fields([
     { name: 'courseVideo', maxCount: 1 },
     { name: 'courseThumbnail', maxCount: 1 },
-    { name: 'courseAttachment', maxCount: 10 }
+    { name: 'courseAttachment', maxCount: 10 },
+    {name: 'courseCurriculumAttachment', maxCount: 1 }
 ]), createCourse);
 
 router.get('/getAllCourses', getAllCourses);

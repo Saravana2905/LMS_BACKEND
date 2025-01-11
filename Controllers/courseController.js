@@ -29,9 +29,10 @@ exports.createCourse = async (req, res) => {
       itSkillsCovered,
       whyShouldJoin,
       certification,
+      courseCurriculum,
     } = req.body;
 
-    const basePath = path.resolve("./uploads");
+    const basePath = path.resolve("../../uploads");
     const courseFolderName = slugify(courseTitle, { lower: true, strict: true });
     const courseFolderPath = path.join(basePath, courseFolderName);
 
@@ -42,48 +43,66 @@ exports.createCourse = async (req, res) => {
 
     // Handle course video upload and URL generation
     const courseVideoPath = path.join(courseFolderPath, req.files.courseVideo[0].originalname);
-    fs.renameSync(req.files.courseVideo[0].path, courseVideoPath);
-    const courseVideoUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
-
-    // Handle course thumbnail upload and URL generation
-    const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
-    fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
-    const courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
-
-    // Handle course attachments (if any) and URL generation
-    const courseAttachmentUrls = [];
-    if (req.files.courseAttachment) {
-      for (const file of req.files.courseAttachment) {
-        const attachmentPath = path.join(courseFolderPath, file.originalname);
-        fs.renameSync(file.path, attachmentPath);
-        const attachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
-        courseAttachmentUrls.push(attachmentUrl);
+    fs.rename(req.files.courseVideo[0].path, courseVideoPath, async (err) => {
+      if (err) {
+        console.error(`Failed to rename course video: ${err.message}`);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to process course video",
+          error: err.message,
+        });
       }
-    }
+      const courseVideoUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
 
-    // Create the course in the database
-    const course = await Course.create({
-      courseTitle,
-      courseDescription,
-      courseCategory,
-      courseDuration,
-      courseVideoTitle,
-      courseLevel,
-      courseVideo: courseVideoUrl,
-      courseThumbnail: courseThumbnailUrl,
-      courseAttachment: courseAttachmentUrls,
-      whatYouWillLearn,
-      keyFeatures,
-      whoCanEnroll,
-      itSkillsCovered,
-      whyShouldJoin,
-      certification,
-    });
+      // Handle course thumbnail upload and URL generation
+      const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
+      fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
+      const courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
+      
+      // Check if courseCurriculumAttachment is provided
+      const courseCurriculumAttachmentPath = path.join(courseFolderPath, file.originalname);
+      fs.renameSync(file.path, courseCurriculumAttachmentPath);
+      const courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
+      
+      
+      // Handle course attachments (if any) and URL generation
+      const courseAttachmentUrls = [];
+      if (req.files.courseAttachment) {
+        for (const file of req.files.courseAttachment) {
+          const attachmentPath = path.join(courseFolderPath, file.originalname);
+          fs.renameSync(file.path, attachmentPath);
+          const attachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
+          courseAttachmentUrls.push(attachmentUrl);
+        }
+      }
+      
 
-    res.status(201).json({
-      success: true,
-      message: "Course created successfully",
-      course,
+      // Create the course in the database
+      const course = await Course.create({
+        courseTitle,
+        courseDescription,
+        courseCategory,
+        courseDuration,
+        courseVideoTitle,
+        courseLevel,
+        courseVideo: courseVideoUrl,
+        courseThumbnail: courseThumbnailUrl,
+        courseAttachment: courseAttachmentUrls,
+        whatYouWillLearn,
+        keyFeatures,
+        whoCanEnroll,
+        itSkillsCovered,
+        whyShouldJoin,
+        certification,
+        courseCurriculum,
+        courseCurriculumAttachment: courseCurriculumAttachmentUrl
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Course created successfully",
+        course,
+      });
     });
   } catch (error) {
     res.status(400).json({
@@ -130,11 +149,12 @@ exports.updateCourseById = async (req, res) => {
       itSkillsCovered,
       whyShouldJoin,
       certification,
+      courseCurriculum
     } = req.body;
 
     // Generate folder path for the course
     const courseFolderName = slugify(courseTitle, { lower: true, strict: true });
-    const courseFolderPath = path.resolve(`./uploads/${courseFolderName}`);
+    const courseFolderPath = path.resolve(`../../uploads/${courseFolderName}`);
 
     // Ensure the folder exists
     if (!fs.existsSync(courseFolderPath)) {
@@ -155,6 +175,14 @@ exports.updateCourseById = async (req, res) => {
       const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
       fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
       courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
+    }
+
+    // Handle the course curriculum attachment file
+    let courseCurriculumAttachmentUrl = null;
+    if (req.files.courseCurriculumAttachment) {
+      const courseCurriculumAttachmentPath = path.join(courseFolderPath, req.files.courseCurriculumAttachment[0].originalname);
+      fs.renameSync(req.files.courseCurriculumAttachment[0].path, courseCurriculumAttachmentPath);
+      courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
     }
 
     // Handle course attachments (if any)
@@ -181,11 +209,13 @@ exports.updateCourseById = async (req, res) => {
         courseVideo: courseVideoUrl,      // Save video URL
         courseThumbnail: courseThumbnailUrl,  // Save thumbnail URL
         courseAttachment: courseAttachmentUrls, // Save attachment URLs
+        courseCurriculumAttachment: courseCurriculumAttachmentUrl, // Save curriculum attachment URL
         keyFeatures,
         whoCanEnroll,
         itSkillsCovered,
         whyShouldJoin,
         certification,
+        courseCurriculum
       },
       { new: true }
     );
@@ -204,7 +234,6 @@ exports.updateCourseById = async (req, res) => {
       success: false,
       message: 'Course update failed',
       error: error.message,
-
     });
   }
 };
@@ -215,7 +244,7 @@ exports.deleteCourseById = async (req, res) => {
     const course = await Course.findByIdAndDelete(req.params.id);
 
     if (course) {
-      const courseFolderPath = path.resolve(`./uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
+      const courseFolderPath = path.resolve(`../../uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
       if (fs.existsSync(courseFolderPath)) {
         fs.rmSync(courseFolderPath, { recursive: true, force: true });
       }
@@ -232,7 +261,7 @@ exports.deleteAllCourses = async (req, res) => {
   try {
     const courses = await Course.find();
     courses.forEach(course => {
-      const courseFolderPath = path.resolve(`./uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
+      const courseFolderPath = path.resolve(`../../uploads/${slugify(course.courseTitle, { lower: true, strict: true })}`);
       if (fs.existsSync(courseFolderPath)) {
         fs.rmSync(courseFolderPath, { recursive: true, force: true });
       }

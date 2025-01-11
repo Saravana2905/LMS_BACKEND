@@ -78,7 +78,7 @@ exports.createDoubtSession = async (req, res) => {
 
     // Prepare email data
     const emailData = {
-      Topic: "Doubt Session",
+      Topic: doubt,
       Date: sessionDate,
       Time: sessionTime,
       Link: join_url,
