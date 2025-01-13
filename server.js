@@ -8,8 +8,6 @@ const studentRoutes = require('./Routes/studentRoute');
 const adminRoutes = require('./Routes/adminRoute')
 const meetingRoutes = require('./Routes/meetingRoute');
 const webinarRoutes = require('./Routes/webinarRoute');
-const mailRoutes = require('./Routes/mailRoutes');
-const paypalRoutes = require('./Routes/paypalRoute');
 const batchRoutes = require('./Routes/batchRoute')
 const projectRoutes = require('./Routes/projectRoute');
 const testRoutes = require('./Routes/testRoute');
@@ -39,8 +37,6 @@ app.use('/student', studentRoutes);
 app.use('/admin', adminRoutes)
 app.use('/meeting', meetingRoutes);
 app.use('/webinar', webinarRoutes);
-app.use('/mail', mailRoutes);
-app.use('/paypal', paypalRoutes);
 app.use('/batch', batchRoutes);
 app.use('/project', projectRoutes);
 app.use('/test', testRoutes);
