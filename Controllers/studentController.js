@@ -21,6 +21,7 @@ exports.createStudent = async (req, res) => {
       country,
       zipcode,
       password,
+      courseId,
     } = req.body;
     console.log("Request ---->",req.body);
     // Function to generate a sequential unique ID
@@ -98,6 +99,7 @@ exports.createStudent = async (req, res) => {
       zipcode,
       password: hashedPassword,
       role: 'Student',
+      courses: [courseId],
     });
     console.log("Student ---->",student);
     res.status(201).json({

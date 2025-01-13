@@ -10,8 +10,11 @@ exports.createTrainer = async (req, res) => {
       lastname,
       mobileNumber,
       mailId,
+      password,
       myCourse,
     } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     let imageUrl, resumeUrl;
 
@@ -44,6 +47,7 @@ exports.createTrainer = async (req, res) => {
       lastname,
       mobileNumber,
       mailId,
+      password: hashedPassword,
       image: imageUrl,
       resume: resumeUrl,
       myCourse,
