@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt'); // Assuming you're hashing passwords for secur
 
 exports.login = async (req, res) => {
     const { email, password } = req.body; // Ensure these fields are sent in the request body
-
+    console.log(email,password);
     try {
         if (!email || !password) {
             return res.status(400).json({
@@ -19,6 +19,7 @@ exports.login = async (req, res) => {
         let student = await Student.findOne({ email });
         if (student) {
             // Verify password
+            console.log("Student->>>>>")
             const isMatch = await bcrypt.compare(password, student.password);
             if (!isMatch) {
                 return res.status(401).json({
@@ -43,6 +44,7 @@ exports.login = async (req, res) => {
             });
         } else {
             let admin = await Admin.findOne({ email });
+            console.log("Admin ---->>>>>>")
             if (admin) {
                 // Verify password
                 const isMatch = await bcrypt.compare(password, admin.password);
@@ -77,6 +79,7 @@ exports.login = async (req, res) => {
         let trainer = await Trainer.findOne({ email });
         if (trainer) {
             // Verify password
+            console.log("trainer---->/n",trainer);
             const isMatch = await bcrypt.compare(password, trainer.password);
             if (!isMatch) {
                 return res.status(401).json({
@@ -107,6 +110,7 @@ exports.login = async (req, res) => {
             message: "User not found",
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             success: false,
             message: "Login failed",

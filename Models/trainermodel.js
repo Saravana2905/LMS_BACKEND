@@ -13,7 +13,7 @@ const trainerSchema = mongoose.Schema({
       type: String,
       required: true
     },
-    mailId: {
+    email: {
       type: String,
       required: true
     },

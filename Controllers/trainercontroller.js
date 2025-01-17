@@ -2,6 +2,7 @@ const Trainer = require("../Models/trainermodel");
 const path = require("path");
 const fs = require('fs');
 const slugify = require("slugify");
+const bcrypt = require('bcrypt');
 
 exports.createTrainer = async (req, res) => {
   try {
@@ -9,7 +10,7 @@ exports.createTrainer = async (req, res) => {
       firstname,
       lastname,
       mobileNumber,
-      mailId,
+      email,
       password,
       myCourse,
     } = req.body;
@@ -46,7 +47,7 @@ exports.createTrainer = async (req, res) => {
       firstname,
       lastname,
       mobileNumber,
-      mailId,
+      email,
       password: hashedPassword,
       image: imageUrl,
       resume: resumeUrl,
@@ -98,7 +99,7 @@ exports.updateTrainer = async (req, res) => {
     if (req.body.firstname) updateData.firstname = req.body.firstname;
     if (req.body.lastname) updateData.lastname = req.body.lastname;
     if (req.body.mobileNumber) updateData.mobileNumber = req.body.mobileNumber;
-    if (req.body.mailId) updateData.mailId = req.body.mailId;
+    if (req.body.email) updateData.email = req.body.email;
     if (req.body.myCourse) updateData.myCourse = req.body.myCourse;
     if (!req.body.role) updateData.role = "Trainer";
 
