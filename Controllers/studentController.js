@@ -23,17 +23,20 @@ exports.createStudent = async (req, res) => {
       password,
       courseId,
     } = req.body;
-    console.log("Request ---->",req.body);
+    console.log("Request ---->", req.body);
+
     // Function to generate a sequential unique ID
     async function generateUniqueId() {
-      const currentYear = new Date().getFullYear();
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
       const counter = await Counter.findOneAndUpdate(
-        { key: `iTrain-${currentYear}` },
+        { key: `Student-${currentYear}${currentMonth}` },
         { $inc: { value: 1 } },
         { new: true, upsert: true }
       );
-      const formattedValue = String(counter.value).padStart(4, '0');
-      return `iTrain-${currentYear}${formattedValue}`;
+      const formattedValue = String(counter.value).padStart(3, '0');
+      return `${currentYear}${currentMonth}${formattedValue}`;
     }
 
     // Check if the student already exists
@@ -50,11 +53,9 @@ exports.createStudent = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let profileImageUrl = null;
-    let studentId = null;
+    let studentId = await generateUniqueId();
 
     if (req.files?.profileImage) {
-      studentId = await generateUniqueId();
-
       // Use folderName from request body for student image storage
       const folderName = req.body.folderName || studentId;
 
@@ -71,19 +72,6 @@ exports.createStudent = async (req, res) => {
       profileImageUrl = `${req.protocol}://${req.get('host')}/files/${folderName}/${req.files.profileImage[0].originalname}`;
     }
 
-    if (!studentId) {
-      studentId = await generateUniqueId();
-    }
-
-    const updatedStudent = await Student.findByIdAndUpdate(
-      studentId,
-      {
-        $push: { courses: courseId },
-        batchNumber: latestBatch.batchNumber,
-      },
-      { new: true }
-    );
-
     const student = await Student.create({
       Id: studentId,
       firstName,
@@ -98,17 +86,19 @@ exports.createStudent = async (req, res) => {
       country,
       zipcode,
       password: hashedPassword,
+      profileImage: profileImageUrl,
       role: 'Student',
       courses: [courseId],
     });
-    console.log("Student ---->",student);
+
+    console.log("Student ---->", student);
     res.status(201).json({
       success: true,
       message: 'Student created successfully',
       student,
     });
   } catch (error) {
-    console.log("Error ---->",error);
+    console.log("Error ---->", error);
     res.status(400).json({
       success: false,
       message: 'Student creation failed',
@@ -116,7 +106,6 @@ exports.createStudent = async (req, res) => {
     });
   }
 };
-
 
 exports.getStudents = async (req, res) => {
   try {
