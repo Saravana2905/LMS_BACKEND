@@ -21,7 +21,7 @@ exports.createTrainer = async (req, res) => {
 
     // Folder path to store the trainer's files
     const trainerFolderName = slugify(`${firstname}-${lastname}`, { lower: true, strict: true });
-    const trainerFolderPath = path.join(__dirname,  '..', '..', '..', 'uploads', trainerFolderName);
+    const trainerFolderPath = path.join(__dirname,  '..', '../../../uploads', trainerFolderName);
 
     // Ensure the trainer folder exists
     if (!fs.existsSync(trainerFolderPath)) {

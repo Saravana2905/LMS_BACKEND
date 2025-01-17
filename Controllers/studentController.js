@@ -60,7 +60,7 @@ exports.createStudent = async (req, res) => {
       const folderName = req.body.folderName || studentId;
 
       // Generate student folder if not exists
-      const studentFolderPath = path.join(__dirname, '..', '../../uploads', folderName);
+      const studentFolderPath = path.join(__dirname, '..', '../../../uploads', folderName);
       await mkdirp(studentFolderPath); // Ensure the folder exists
 
       // Get file path and move the file to the student's folder
