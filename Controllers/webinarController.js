@@ -4,6 +4,7 @@ const Trainer = require('../Models/trainermodel');
 const Course = require('../Models/courseModel');
 
 exports.createWebinar = async (req, res) => {
+  console.log(req.body);
   const { webinarTitle, trainerName, date, time, course, courseLevel, desc, timeZone } = req.body;
 
   const account_id = 'g6uJyuGmT3iIxvcrbRoFEw';
@@ -18,10 +19,17 @@ exports.createWebinar = async (req, res) => {
   };
 
   try {
-    // Validate trainer existence
-    const trainer = await Trainer.findById(trainerName);
-    if (!trainer) {
-      return res.status(404).json({ error: 'Trainer not found' });
+    let trainer;
+
+    if (trainerName) {
+      // Verify if the trainerName is correct
+      trainer = await Trainer.findOne({ name: trainerName });
+      if (!trainer) {
+        // Handle guest lecturer by name
+        trainer = { name: trainerName };
+      }
+    } else {
+      return res.status(400).json({ error: 'Trainer name is required' });
     }
 
     // Validate course existence
@@ -62,11 +70,12 @@ exports.createWebinar = async (req, res) => {
     // Save the webinar details to the database
     const webinar = await Webinar.create({
       webinarTitle,
-      trainerName,
+      trainerName: trainer.name,
       date,
       time,
       course,
       courseLevel,
+      desc,
       timeZone,
       desc,
       joinUrl: webinarResponse.data.join_url,

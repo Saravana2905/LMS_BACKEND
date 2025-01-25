@@ -14,7 +14,7 @@ const courseSchema = mongoose.Schema({
     required: true
   },
   courseDuration: {
-    type: Number,
+    type: String,
     required: true
   },
   courseVideoTitle: {

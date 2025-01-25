@@ -6,15 +6,9 @@ const webinarSchema =  mongoose.Schema({
   time: { type: String, required: true },
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
   courseLevel: { type: String, required: true },
-  timeZone: {
-    value: { type: String, required: true },
-    label: { type: String, required: true },
-    offset: { type: Number, required: true },
-    abbrev: { type: String, required: true },
-    altName: { type: String, required: true }
-  },
-  trainerName: { type: mongoose.Schema.Types.ObjectId, ref: 'Trainer', required: true },
-  desc:{type: String, required:true},
+  timeZone: { type: String, required: true },
+  trainerName: { type: String, required: true },
+  desc:{type: String, required:false},
   joinUrl : { type: String, required: true }, 
 });
 

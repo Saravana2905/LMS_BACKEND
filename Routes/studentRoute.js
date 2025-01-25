@@ -10,10 +10,12 @@ router.post('/createStudent', upload.fields([
 
 router.get('/getStudents', getStudents);//admin & trainer
 router.get('/getStudentById/:id', getStudentById); //admin & trainer
-router.put('/updateStudent/:id',Auth.authenticateJWT, Auth.verifyRole(['Student','Trainer']) , upload.fields([
+router.put('/updateStudent/:id', upload.fields([
     { name: 'profileImage', maxCount: 1 }
 ]), updateStudent); //student
 router.delete('/deleteStudent/:id', deleteStudent); //admin
 router.post("/login", loginStudent); //student
 
 module.exports = router;
+
+// Auth.authenticateJWT, Auth.verifyRole(['Student']) ,
