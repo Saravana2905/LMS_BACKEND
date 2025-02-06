@@ -1,7 +1,7 @@
-const Course = require("../Models/courseModel");
 const path = require("path");
 const fs = require("fs");
 const slugify = require("slugify");
+const Course = require("../Models/CourseModel");
 const Student = require("../Models/StudentModel");
 const Batch = require("../Models/BatchModel");
 
@@ -52,12 +52,12 @@ exports.createCourse = async (req, res) => {
           error: err.message,
         });
       }
-      const courseVideoUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
+      const courseVideoUrl = `https://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
 
       // Handle course thumbnail upload and URL generation
       const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
       fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
-      const courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
+      const courseThumbnailUrl = `https://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
       
       // Initialize the variable
       let courseCurriculumAttachmentUrl = null;
@@ -66,24 +66,38 @@ exports.createCourse = async (req, res) => {
       if (req.files.courseCurriculumAttachment && req.files.courseCurriculumAttachment.length > 0) {
         const courseCurriculumAttachmentPath = path.join(courseFolderPath, req.files.courseCurriculumAttachment[0].originalname);
         fs.renameSync(req.files.courseCurriculumAttachment[0].path, courseCurriculumAttachmentPath);
-        courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
+        courseCurriculumAttachmentUrl = `https://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
       } else {
         console.error('Course curriculum attachment not provided');
         // Optionally, set a default URL or handle the absence of the file
       }
-      
-      
+
       // Handle course attachments (if any) and URL generation
       const courseAttachmentUrls = [];
-      if (req.files.courseAttachment) {
-        for (const file of req.files.courseAttachment) {
-          const attachmentPath = path.join(courseFolderPath, file.originalname);
-          fs.renameSync(file.path, attachmentPath);
-          const attachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
-          courseAttachmentUrls.push(attachmentUrl);
+      if (req.body.courseAttachment) {
+        const courseAttachment = JSON.parse(req.body.courseAttachment);
+        for (const week of courseAttachment) {
+          const weekFolderPath = path.join(courseFolderPath, slugify(week.weekTitle, { lower: true, strict: true }));
+          if (!fs.existsSync(weekFolderPath)) {
+            fs.mkdirSync(weekFolderPath, { recursive: true });
+          }
+          const weekData = { weekTitle: week.weekTitle, days: [] };
+          for (const day of week.days) {
+            const dayFolderPath = path.join(weekFolderPath, slugify(day.dayTitle, { lower: true, strict: true }));
+            if (!fs.existsSync(dayFolderPath)) {
+              fs.mkdirSync(dayFolderPath, { recursive: true });
+            }
+            const pdfPath = path.join(dayFolderPath, day.pdf);
+            const pptPath = path.join(dayFolderPath, day.ppt);
+            weekData.days.push({
+              dayTitle: day.dayTitle,
+              pdf: `https://${req.get('host')}/files/${courseFolderName}/${slugify(week.weekTitle, { lower: true, strict: true })}/${slugify(day.dayTitle, { lower: true, strict: true })}/${day.pdf}`,
+              ppt: `https://${req.get('host')}/files/${courseFolderName}/${slugify(week.weekTitle, { lower: true, strict: true })}/${slugify(day.dayTitle, { lower: true, strict: true })}/${day.ppt}`
+            });
+          }
+          courseAttachmentUrls.push(weekData);
         }
       }
-      
 
       // Create the course in the database
       const course = await Course.create({
@@ -174,7 +188,7 @@ exports.updateCourseById = async (req, res) => {
     if (req.files.courseVideo) {
       const courseVideoPath = path.join(courseFolderPath, req.files.courseVideo[0].originalname);
       fs.renameSync(req.files.courseVideo[0].path, courseVideoPath);
-      courseVideoUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
+      courseVideoUrl = `https://${req.get('host')}/files/${courseFolderName}/${req.files.courseVideo[0].originalname}`;
     }
 
     // Handle the course thumbnail file
@@ -182,7 +196,7 @@ exports.updateCourseById = async (req, res) => {
     if (req.files.courseThumbnail) {
       const courseThumbnailPath = path.join(courseFolderPath, req.files.courseThumbnail[0].originalname);
       fs.renameSync(req.files.courseThumbnail[0].path, courseThumbnailPath);
-      courseThumbnailUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
+      courseThumbnailUrl = `https://${req.get('host')}/files/${courseFolderName}/${req.files.courseThumbnail[0].originalname}`;
     }
 
     // Handle the course curriculum attachment file
@@ -190,21 +204,37 @@ exports.updateCourseById = async (req, res) => {
     if (req.files.courseCurriculumAttachment) {
       const courseCurriculumAttachmentPath = path.join(courseFolderPath, req.files.courseCurriculumAttachment[0].originalname);
       fs.renameSync(req.files.courseCurriculumAttachment[0].path, courseCurriculumAttachmentPath);
-      courseCurriculumAttachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
+      courseCurriculumAttachmentUrl = `https://${req.get('host')}/files/${courseFolderName}/${req.files.courseCurriculumAttachment[0].originalname}`;
     } else {
       // Handle the case where the file is not provided
       console.error('Course curriculum attachment not provided');
       // You might want to return an error response or set a default value
     }
 
-    // Handle course attachments (if any)
+    // Handle course attachments (if any) and URL generation
     const courseAttachmentUrls = [];
-    if (req.files.courseAttachment) {
-      for (const file of req.files.courseAttachment) {
-        const attachmentPath = path.join(courseFolderPath, file.originalname);
-        fs.renameSync(file.path, attachmentPath);
-        const attachmentUrl = `${req.protocol}://${req.get('host')}/files/${courseFolderName}/${file.originalname}`;
-        courseAttachmentUrls.push(attachmentUrl);
+    if (req.body.courseAttachment) {
+      const courseAttachment = JSON.parse(req.body.courseAttachment);
+      for (const week of courseAttachment) {
+        const weekFolderPath = path.join(courseFolderPath, slugify(week.weekTitle, { lower: true, strict: true }));
+        if (!fs.existsSync(weekFolderPath)) {
+          fs.mkdirSync(weekFolderPath, { recursive: true });
+        }
+        const weekData = { weekTitle: week.weekTitle, days: [] };
+        for (const day of week.days) {
+          const dayFolderPath = path.join(weekFolderPath, slugify(day.dayTitle, { lower: true, strict: true }));
+          if (!fs.existsSync(dayFolderPath)) {
+            fs.mkdirSync(dayFolderPath, { recursive: true });
+          }
+          const pdfPath = path.join(dayFolderPath, day.pdf);
+          const pptPath = path.join(dayFolderPath, day.ppt);
+          weekData.days.push({
+            dayTitle: day.dayTitle,
+            pdf: `https://${req.get('host')}/files/${courseFolderName}/${slugify(week.weekTitle, { lower: true, strict: true })}/${slugify(day.dayTitle, { lower: true, strict: true })}/${day.pdf}`,
+            ppt: `https://${req.get('host')}/files/${courseFolderName}/${slugify(week.weekTitle, { lower: true, strict: true })}/${slugify(day.dayTitle, { lower: true, strict: true })}/${day.ppt}`
+          });
+        }
+        courseAttachmentUrls.push(weekData);
       }
     }
 
@@ -218,8 +248,8 @@ exports.updateCourseById = async (req, res) => {
         courseDuration,
         courseVideoTitle,
         courseLevel,
-        courseVideo: courseVideoUrl,      // Save video URL
-        courseThumbnail: courseThumbnailUrl,  // Save thumbnail URL
+        courseVideo: courseVideoUrl, // Save video URL
+        courseThumbnail: courseThumbnailUrl, // Save thumbnail URL
         courseAttachment: courseAttachmentUrls, // Save attachment URLs
         courseCurriculumAttachment: courseCurriculumAttachmentUrl, // Save curriculum attachment URL
         keyFeatures,
@@ -387,5 +417,75 @@ exports.getReadingMaterial = async (req, res) => {
     res.status(200).json({ courses: courseDetailsWithAttachments });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Update course attachment by ID
+exports.updateCourseAttachmentById = async (req, res) => {
+  try {
+    console.log('Request body:', req.body);
+    const { id } = req.params;
+
+    // Generate folder path for the course
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    
+    const courseFolderName = slugify(course.courseTitle, { lower: true, strict: true });
+    const courseFolderPath = path.resolve(`../../../uploads/${courseFolderName}`);
+
+    // Ensure the folder exists
+    if (!fs.existsSync(courseFolderPath)) {
+      fs.mkdirSync(courseFolderPath, { recursive: true });
+    }
+
+    // Handle course attachments (if any) and URL generation
+    const courseAttachmentUrls = [];
+    if (req.body.courseAttachmentData) {
+      const courseAttachment = JSON.parse(req.body.courseAttachmentData);
+      console.log('Parsed course attachment:', courseAttachment);
+      for (const week of courseAttachment) {
+        const weekFolderPath = path.join(courseFolderPath, slugify(week.weekTitle, { lower: true, strict: true }));
+        if (!fs.existsSync(weekFolderPath)) {
+          fs.mkdirSync(weekFolderPath, { recursive: true });
+        }
+        const weekData = { weekTitle: week.weekTitle, days: [] };
+        for (const day of week.days) {
+          const dayFolderPath = path.join(weekFolderPath, slugify(day.dayTitle, { lower: true, strict: true }));
+          if (!fs.existsSync(dayFolderPath)) {
+            fs.mkdirSync(dayFolderPath, { recursive: true });
+          }
+          const pdfPath = path.join(dayFolderPath, day.pdf);
+          const pptPath = path.join(dayFolderPath, day.ppt);
+          weekData.days.push({
+            dayTitle: day.dayTitle,
+            pdf: `https://${req.get('host')}/files/${courseFolderName}/${slugify(week.weekTitle, { lower: true, strict: true })}/${slugify(day.dayTitle, { lower: true, strict: true })}/${day.pdf}`,
+            ppt: `https://${req.get('host')}/files/${courseFolderName}/${slugify(week.weekTitle, { lower: true, strict: true })}/${slugify(day.dayTitle, { lower: true, strict: true })}/${day.ppt}`
+          });
+        }
+        courseAttachmentUrls.push(weekData);
+      }
+    }
+
+    // Update the course attachment in the database
+    course.courseAttachment = courseAttachmentUrls;
+    await course.save();
+
+    console.log('Course attachment updated:', course.courseAttachment);
+
+    res.status(200).json({
+      success: true,
+      message: 'Course attachment updated successfully',
+      course,
+    });
+  } catch (error) {
+    console.error('Error updating course attachment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Course attachment update failed',
+      error: error.message,
+    });
   }
 };

@@ -69,7 +69,7 @@ exports.createStudent = async (req, res) => {
       fs.renameSync(imagePath, newImagePath); // Move file to the new folder
 
       // Construct the full URL of the image
-      profileImageUrl = `${req.protocol}://${req.get('host')}/files/${folderName}/${req.files.profileImage[0].originalname}`;
+      profileImageUrl = `https://api.itrain.io/files/${folderName}/${req.files.profileImage[0].originalname}`;
     }
 
     const student = await Student.create({
@@ -216,7 +216,7 @@ exports.updateStudent = async (req, res) => {
       fs.renameSync(imagePath, newImagePath); // Move file to the new folder
 
       // Construct the new profile image URL
-      profileImageUrl = `${req.protocol}://${req.get('host')}/files/${folderName}/${req.files.profileImage[0].originalname}`;
+      profileImageUrl = `https://api.itrain.io/files/${folderName}/${req.files.profileImage[0].originalname}`;
       updateData.profileImage = profileImageUrl; // Update the profile image path
     }
 

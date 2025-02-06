@@ -1,5 +1,5 @@
 const Test = require('../Models/TestModel');
-const Course = require('../Models/courseModel');
+const Course = require('../Models/CourseModel');
 
 exports.createTest = async (req, res) => {
     try {

@@ -1,7 +1,7 @@
 const Webinar = require("../Models/webinarModel");
 const axios = require('axios');
 const Trainer = require('../Models/trainermodel');
-const Course = require('../Models/courseModel');
+const Course = require('../Models/CourseModel.js');
 
 exports.createWebinar = async (req, res) => {
   console.log(req.body);

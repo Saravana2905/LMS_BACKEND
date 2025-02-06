@@ -1,6 +1,33 @@
 const mongoose = require('mongoose');
 
-const courseSchema = mongoose.Schema({
+const daySchema = new mongoose.Schema({
+  dayTitle: {
+    type: String,
+    required: true
+  },
+  pdf: {
+    type: String,
+    required: true
+  },
+  ppt: {
+    type: String,
+    required: true
+  },
+});
+
+const weekSchema = new mongoose.Schema({
+  weekTitle: {
+    type: String,
+    required: true
+  },
+  days: {
+    type: [daySchema],
+    default: [],
+    required: true
+  }
+});
+
+const courseSchema = new mongoose.Schema({
   courseTitle: {
     type: String,
     required: true
@@ -30,62 +57,60 @@ const courseSchema = mongoose.Schema({
     required: true
   },
   courseAttachment: {
-    type: [String], // Change this line to accept an array of strings
+    type: [weekSchema], // Updated to include weeks and days with specific fields
     default: [],
     required: true
   },
   courseLevel: {
     type: String,
-    values: ['Beginner', 'Intermediate', 'Advanced'],
+    enum: ['Beginner', 'Intermediate', 'Advanced'], // Changed 'values' to 'enum'
     required: true
   },
-    whatYouWillLearn:{
-        type: [String],
-        default: [],
-        required: false
-    },
-    keyFeatures:{
-        type: [String],
-        default: [],
-        required: false
-    },
-    whoCanEnroll:{
-        type: [String],
-        default: [],
-        required: false
-    },
-    itSkillsCovered:{
-        type: [String],
-        default: [],
-        required: false
-    },
-    whyShouldJoin:{
-        type: [String],
-        default: [],
-        required: false
-    },
-    certification:{
-        type: String,
-        required: false
-    },
-    courseCurriculum:{
-        type: [String],
-        default: [],
-        required: true
-    },
-    courseCurriculumAttachment:{
-        type: String,
-        required: false
-    },
+  whatYouWillLearn: {
+    type: [String],
+    default: [],
+    required: false
+  },
+  keyFeatures: {
+    type: [String],
+    default: [],
+    required: false
+  },
+  whoCanEnroll: {
+    type: [String],
+    default: [],
+    required: false
+  },
+  itSkillsCovered: {
+    type: [String],
+    default: [],
+    required: false
+  },
+  whyShouldJoin: {
+    type: [String],
+    default: [],
+    required: false
+  },
+  certification: {
+    type: String,
+    required: false
+  },
+  courseCurriculum: {
+    type: [String],
+    default: [],
+    required: true
+  },
+  courseCurriculumAttachment: {
+    type: String,
+    required: false
+  },
   batches: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Batch',
     },
-  ],  
-},
-{timestamps: true}
-);
+  ],
+}, { timestamps: true });
 
 const Course = mongoose.model('Course', courseSchema);
 module.exports = Course;

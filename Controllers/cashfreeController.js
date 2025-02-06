@@ -1,5 +1,13 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
+
+// Cashfree API credentials
+const CLIENT_ID = process.env.CASHFREE_CLIENT_ID;
+const CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET;
+const API_VERSION = process.env.CASHFREE_API_VERSION;
+const BASE_URL = process.env.CASHFREE_BASE_URL;
+
 
 
 exports.CreatePlans = async (req, res) => {
@@ -35,7 +43,9 @@ exports.CreatePlans = async (req, res) => {
 
 
 exports.createSubscription = async (req, res)=>{
-    const { customer_name, customer_email, customer_phone } = req.body;
+  const PLAN_ID = 'P-01202002';
+  
+  const { customer_name, customer_email, customer_phone } = req.body;
   const subscription_id = uuidv4(); // Generate a unique subscription ID
   try {
     const response = await axios.post(`${BASE_URL}/subscriptions`, {
@@ -63,8 +73,6 @@ exports.createSubscription = async (req, res)=>{
         notification_channel: ['EMAIL', 'SMS'],
       },
       subscription_id, // Use the generated subscription ID
-      subscription_note: 'test subscription create',
-      subscription_expiry_time: '2028-12-24T14:15:22Z',
     }, {
       headers: {
         accept: 'application/json',

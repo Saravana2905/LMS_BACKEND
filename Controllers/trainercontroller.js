@@ -32,14 +32,14 @@ exports.createTrainer = async (req, res) => {
     if (req.files.image) {
       const imagePath = path.join(trainerFolderPath, req.files.image[0].originalname);
       fs.renameSync(req.files.image[0].path, imagePath);
-      imageUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.image[0].originalname}`;
+      imageUrl = `https://api.itrain.io/files/${trainerFolderName}/${req.files.image[0].originalname}`;
     }
 
     // Upload trainer resume and get the resume URL
     if (req.files.resume) {
       const resumePath = path.join(trainerFolderPath, req.files.resume[0].originalname);
       fs.renameSync(req.files.resume[0].path, resumePath);
-      resumeUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.resume[0].originalname}`;
+      resumeUrl = `https://api.itrain.io/files/${trainerFolderName}/${req.files.resume[0].originalname}`;
     }
 
     // Create the trainer record in the database
@@ -118,7 +118,7 @@ exports.updateTrainer = async (req, res) => {
     if (req.files && req.files.image) {
       const imagePath = path.join(trainerFolderPath, req.files.image[0].originalname);
       fs.renameSync(req.files.image[0].path, imagePath); // Save the image locally
-      imageUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.image[0].originalname}`;
+      imageUrl = `https://api.itrain.io/files/${trainerFolderName}/${req.files.image[0].originalname}`;
       updateData.image = imageUrl; // Update the image URL
     }
 
@@ -126,7 +126,7 @@ exports.updateTrainer = async (req, res) => {
     if (req.files && req.files.resume) {
       const resumePath = path.join(trainerFolderPath, req.files.resume[0].originalname);
       fs.renameSync(req.files.resume[0].path, resumePath); // Save the resume locally
-      resumeUrl = `${req.protocol}://${req.get('host')}/files/${trainerFolderName}/${req.files.resume[0].originalname}`;
+      resumeUrl = `https://api.itrain.io/files/${trainerFolderName}/${req.files.resume[0].originalname}`;
       updateData.resume = resumeUrl; // Update the resume URL
     }
 
