@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const slugify = require("slugify");
-const Course = require("../Models/CourseModel");
+const Course = require("../Models/courseModel");
 const Student = require("../Models/StudentModel");
 const Batch = require("../Models/BatchModel");
 
