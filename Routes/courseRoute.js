@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createCourse, getAllCourses, getCourseById, updateCourseById, deleteCourseById, deleteAllCourses, getCourseByStudentId, registerCourse, getCourseByCategory, getReadingMaterial, updateCourseAttachmentById } = require('../Controllers/courseController');
+const { createCourse, getAllCourses, getCourseById, updateCourseById, deleteCourseById, deleteAllCourses, getCourseByStudentId, registerCourse, getCourseByCategory, getReadingMaterial, updateCourseAttachment } = require('../Controllers/courseController');
 const upload = require('../Middleware/multer');
 
 router.post('/createCourse', upload.fields([
@@ -33,9 +33,11 @@ router.get('/getCourseByStudentId/:id', getCourseByStudentId);
 
 router.get('/getMaterialByStudentId/:id', getReadingMaterial);
 
-router.put('/updateCourseAttachment/:id', upload.fields([  
-    { name: 'courseAttachment', maxCount: 36 }
-]), updateCourseAttachmentById
-)
+// Route to update attachments (PDF/PPT) for a specific course, week, and day
+router.put(
+    '/updateCourseAttachment/:courseId/:week/:day',
+    upload.fields([{ name: 'pdf', maxCount: 1 }, { name: 'ppt', maxCount: 1 }]),
+    updateCourseAttachment
+  );  
 
 module.exports = router;
