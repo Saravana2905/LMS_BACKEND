@@ -426,26 +426,61 @@ exports.getReadingMaterial = async (req, res) => {
 exports.updateCourseAttachment = async (req, res) => {
   try {
     const { courseId, week, day } = req.params;
-    const pdfFile = req.files.pdf ? `/files/${req.files.pdf[0].filename}` : null;
-    const pptFile = req.files.ppt ? `/files/${req.files.ppt[0].filename}` : null;
-
-    const baseUrl = "https://api.itrain.io"; 
-
-    const updatedAttachment = {
-      pdf: pdfFile ? `${baseUrl}${pdfFile}` : null,
-      ppt: pptFile ? `${baseUrl}${pptFile}` : null,
-    };
 
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
 
-    if (!course.courseAttachment[week]) course.courseAttachment[week] = {};
-    course.courseAttachment[week][day] = updatedAttachment;
-    await course.save();
+    const courseFolderName = slugify(course.courseTitle, { lower: true, strict: true });
+    const courseFolderPath = path.resolve(__dirname, '../../../uploads', courseFolderName);
+
+    // Ensure the folder exists
+    if (!fs.existsSync(courseFolderPath)) {
+      fs.mkdirSync(courseFolderPath, { recursive: true });
+    }
+
+    const weekFolderPath = path.join(courseFolderPath, slugify(week, { lower: true, strict: true }));
+    if (!fs.existsSync(weekFolderPath)) {
+      fs.mkdirSync(weekFolderPath, { recursive: true });
+    }
+
+    const dayFolderPath = path.join(weekFolderPath, slugify(day, { lower: true, strict: true }));
+    if (!fs.existsSync(dayFolderPath)) {
+      fs.mkdirSync(dayFolderPath, { recursive: true });
+    }
+
+    const pdfFile = req.files.pdf ? req.files.pdf[0] : null;
+    const pptFile = req.files.ppt ? req.files.ppt[0] : null;
+
+    let pdfUrl = null;
+    let pptUrl = null;
+
+    if (pdfFile) {
+      const pdfPath = path.join(dayFolderPath, pdfFile.originalname);
+      fs.renameSync(pdfFile.path, pdfPath);
+      pdfUrl = `https://${req.get('host')}/files/${courseFolderName}/${slugify(week, { lower: true, strict: true })}/${slugify(day, { lower: true, strict: true })}/${pdfFile.originalname}`;
+    }
+
+    if (pptFile) {
+      const pptPath = path.join(dayFolderPath, pptFile.originalname);
+      fs.renameSync(pptFile.path, pptPath);
+      pptUrl = `https://${req.get('host')}/files/${courseFolderName}/${slugify(week, { lower: true, strict: true })}/${slugify(day, { lower: true, strict: true })}/${pptFile.originalname}`;
+    }
+
+    const updatedAttachment = {
+      pdf: pdfUrl,
+      ppt: pptUrl,
+    };
+
+    // Update the course document with the new attachment URLs
+    const updateFields = {};
+    updateFields[`${slugify(week, { lower: true, strict: true })}_${slugify(day, { lower: true, strict: true })}_pdf`] = pdfUrl;
+    updateFields[`${slugify(week, { lower: true, strict: true })}_${slugify(day, { lower: true, strict: true })}_ppt`] = pptUrl;
+
+    const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
 
     res.json({
       message: "Course attachment updated successfully",
-      data: { courseAttachment: course.courseAttachment[week][day] },
+      data: updatedAttachment,
     });
   } catch (error) {
     console.error("Error updating course attachment:", error);
