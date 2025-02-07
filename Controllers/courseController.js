@@ -425,35 +425,30 @@ exports.getReadingMaterial = async (req, res) => {
 // Update Course Attachments (PDF/PPT)
 exports.updateCourseAttachment = async (req, res) => {
   try {
-    const { courseId, week, day } = req.params; // Extract parameters from URL
+    const { courseId, week, day } = req.params;
+    const pdfFile = req.files.pdf ? `/files/${req.files.pdf[0].filename}` : null;
+    const pptFile = req.files.ppt ? `/files/${req.files.ppt[0].filename}` : null;
 
-    if (!req.files || (!req.files.pdf && !req.files.ppt)) {
-      return res.status(400).json({ message: 'No files uploaded' });
-    }
+    const baseUrl = "https://api.itrain.io"; 
 
-    const updateData = {};
+    const updatedAttachment = {
+      pdf: pdfFile ? `${baseUrl}${pdfFile}` : null,
+      ppt: pptFile ? `${baseUrl}${pptFile}` : null,
+    };
 
-    // Add files dynamically if present
-    if (req.files.pdf) updateData[`courseAttachment.${week}.${day}.pdf`] = req.files.pdf[0].path;
-    if (req.files.ppt) updateData[`courseAttachment.${week}.${day}.ppt`] = req.files.ppt[0].path;
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ message: "Course not found" });
 
-    // Update the course document
-    const updatedCourse = await Course.findByIdAndUpdate(
-      courseId,
-      { $set: updateData },
-      { new: true }
-    );
+    if (!course.courseAttachment[week]) course.courseAttachment[week] = {};
+    course.courseAttachment[week][day] = updatedAttachment;
+    await course.save();
 
-    if (!updatedCourse) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-
-    res.status(200).json({
-      message: 'Course attachment updated successfully',
-      data: updatedCourse
+    res.json({
+      message: "Course attachment updated successfully",
+      data: { courseAttachment: course.courseAttachment[week][day] },
     });
   } catch (error) {
-    console.error('Error updating course attachment:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error updating course attachment:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
