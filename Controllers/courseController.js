@@ -440,7 +440,7 @@ const storage = multer.diskStorage({
     const { courseId, week, day } = req.params;
 
     // Define structured folders
-    const courseFolder = slugify(courseId, { lower: true, strict: true });
+    const courseFolder = slugify('attachment', { lower: true, strict: true });
     const weekFolder = `${week}`;
     const dayFolder = `${day}`;
 
