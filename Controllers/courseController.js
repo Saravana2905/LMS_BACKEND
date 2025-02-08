@@ -477,7 +477,7 @@ exports.updateCourseAttachment = async (req, res) => {
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
 
-      const courseFolder = slugify(courseId, { lower: true, strict: true });
+      const courseFolder = slugify('attachment', { lower: true, strict: true });
       const weekKey = `${week}`;
       const dayKey = `${day}`;
 
