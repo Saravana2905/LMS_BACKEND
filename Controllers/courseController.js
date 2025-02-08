@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const Course = require("../Models/courseModel");
 const Student = require("../Models/StudentModel");
 const Batch = require("../Models/BatchModel");
+const multer = require('multer');
 
 // Create a course
 exports.createCourse = async (req, res) => {
@@ -72,6 +73,8 @@ if (req.files.courseCurriculumAttachment && req.files.courseCurriculumAttachment
   console.error('Course curriculum attachment not provided');
   // Optionally, set a default URL or handle the absence of the file
 }
+
+
 
 // Handle course attachments (if any) and URL generation
 const courseAttachmentUrls = [];
@@ -422,68 +425,81 @@ exports.getReadingMaterial = async (req, res) => {
   }
 };
 
-// Update Course Attachments (PDF/PPT)
-exports.updateCourseAttachment = async (req, res) => {
-  try {
+
+// Define upload destination outside the project folder
+const UPLOAD_DIR = path.resolve(__dirname, '../../uploads');
+
+// Ensure the root upload directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
     const { courseId, week, day } = req.params;
 
-    const course = await Course.findById(courseId);
-    if (!course) return res.status(404).json({ message: "Course not found" });
+    // Define structured folders
+    const courseFolder = slugify(courseId, { lower: true, strict: true });
+    const weekFolder = slugify(week, { lower: true, strict: true });
+    const dayFolder = slugify(day, { lower: true, strict: true });
 
-    const courseFolderName = slugify(course.courseTitle, { lower: true, strict: true });
-    const courseFolderPath = path.resolve(__dirname, '../../../uploads', courseFolderName);
+    const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
 
-    // Ensure the folder exists
-    if (!fs.existsSync(courseFolderPath)) {
-      fs.mkdirSync(courseFolderPath, { recursive: true });
+    // Ensure folder exists
+    if (!fs.existsSync(finalPath)) {
+      fs.mkdirSync(finalPath, { recursive: true });
     }
 
-    const weekFolderPath = path.join(courseFolderPath, slugify(week, { lower: true, strict: true }));
-    if (!fs.existsSync(weekFolderPath)) {
-      fs.mkdirSync(weekFolderPath, { recursive: true });
+    cb(null, finalPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + slugify(file.originalname, { lower: true, strict: true }));
+  },
+});
+
+// Multer Upload Middleware
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+}).fields([{ name: 'pdf', maxCount: 1 }, { name: 'ppt', maxCount: 1 }]);
+
+
+// Controller to Handle File Uploads
+exports.updateCourseAttachment = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "File upload error", error: err.message });
     }
 
-    const dayFolderPath = path.join(weekFolderPath, slugify(day, { lower: true, strict: true }));
-    if (!fs.existsSync(dayFolderPath)) {
-      fs.mkdirSync(dayFolderPath, { recursive: true });
+    try {
+      const { courseId, week, day } = req.params;
+      const course = await Course.findById(courseId);
+      if (!course) return res.status(404).json({ message: "Course not found" });
+
+      const courseFolder = slugify(courseId, { lower: true, strict: true });
+      const weekFolder = slugify(week, { lower: true, strict: true });
+      const dayFolder = slugify(day, { lower: true, strict: true });
+
+      const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekFolder}/${dayFolder}`;
+
+      let pdfUrl = req.files.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
+      let pptUrl = req.files.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
+
+      // Updating course document
+      const updateFields = {};
+      if (pdfUrl) updateFields[`${weekFolder}_${dayFolder}_pdf`] = pdfUrl;
+      if (pptUrl) updateFields[`${weekFolder}_${dayFolder}_ppt`] = pptUrl;
+
+      const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
+
+      res.json({
+        message: "Course attachment updated successfully",
+        data: { pdf: pdfUrl, ppt: pptUrl },
+      });
+    } catch (error) {
+      console.error("Error updating course attachment:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    const pdfFile = req.files.pdf ? req.files.pdf[0] : null;
-    const pptFile = req.files.ppt ? req.files.ppt[0] : null;
-
-    let pdfUrl = null;
-    let pptUrl = null;
-
-    if (pdfFile) {
-      const pdfPath = path.join(dayFolderPath, pdfFile.originalname);
-      fs.renameSync(pdfFile.path, pdfPath);
-      pdfUrl = `https://${req.get('host')}/files/${courseFolderName}/${slugify(week, { lower: true, strict: true })}/${slugify(day, { lower: true, strict: true })}/${pdfFile.originalname}`;
-    }
-
-    if (pptFile) {
-      const pptPath = path.join(dayFolderPath, pptFile.originalname);
-      fs.renameSync(pptFile.path, pptPath);
-      pptUrl = `https://${req.get('host')}/files/${courseFolderName}/${slugify(week, { lower: true, strict: true })}/${slugify(day, { lower: true, strict: true })}/${pptFile.originalname}`;
-    }
-
-    const updatedAttachment = {
-      pdf: pdfUrl,
-      ppt: pptUrl,
-    };
-
-    // Update the course document with the new attachment URLs
-    const updateFields = {};
-    updateFields[`${slugify(week, { lower: true, strict: true })}_${slugify(day, { lower: true, strict: true })}_pdf`] = pdfUrl;
-    updateFields[`${slugify(week, { lower: true, strict: true })}_${slugify(day, { lower: true, strict: true })}_ppt`] = pptUrl;
-
-    const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
-
-    res.json({
-      message: "Course attachment updated successfully",
-      data: updatedAttachment,
-    });
-  } catch (error) {
-    console.error("Error updating course attachment:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
+  });
 };
