@@ -478,8 +478,8 @@ exports.updateCourseAttachment = async (req, res) => {
       if (!course) return res.status(404).json({ message: "Course not found" });
 
       const courseFolder = slugify(courseId, { lower: true, strict: true });
-      const weekKey = `week${week}`;
-      const dayKey = `day${day}`;
+      const weekKey = `${week}`;
+      const dayKey = `${day}`;
 
       const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekKey}/${dayKey}`;
 
