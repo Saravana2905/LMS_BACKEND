@@ -425,13 +425,6 @@ exports.getReadingMaterial = async (req, res) => {
   }
 };
 
-
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const slugify = require('slugify');
-const Course = require('../Models/Course'); // Adjust path as needed
-
 // Define upload destination outside the project folder
 const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
 
