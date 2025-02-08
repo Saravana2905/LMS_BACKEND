@@ -426,6 +426,12 @@ exports.getReadingMaterial = async (req, res) => {
 };
 
 
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const slugify = require('slugify');
+const Course = require('../Models/Course'); // Adjust path as needed
+
 // Define upload destination outside the project folder
 const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
 
@@ -460,13 +466,11 @@ const storage = multer.diskStorage({
   },
 });
 
-
-// Multer Upload Middleware
+// Multer Upload Middleware (Only Defined Once)
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 50MB limit
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
 }).fields([{ name: 'pdf', maxCount: 1 }, { name: 'ppt', maxCount: 1 }]);
-
 
 // Controller to Handle File Uploads
 exports.updateCourseAttachment = async (req, res) => {
@@ -486,21 +490,17 @@ exports.updateCourseAttachment = async (req, res) => {
 
       const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekKey}/${dayKey}`;
 
-      let pdfUrl = req.files.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
-      let pptUrl = req.files.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
+      let pdfUrl = req.files?.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
+      let pptUrl = req.files?.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
 
       // Explicitly updating the nested structure
       const updateFields = {};
       if (pdfUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
       if (pptUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
 
-      const updatedCourse = await Course.findByIdAndUpdate(
-        courseId,
-        { $set: updateFields },
-        { new: true }
-      );
+      await Course.findByIdAndUpdate(courseId, { $set: updateFields });
 
-      res.json({
+      return res.json({
         message: "Course attachment updated successfully",
         data: {
           week: weekKey,
@@ -511,7 +511,7 @@ exports.updateCourseAttachment = async (req, res) => {
       });
     } catch (error) {
       console.error("Error updating course attachment:", error);
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error", error: error.message });
     }
   });
 };
