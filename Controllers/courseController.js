@@ -426,7 +426,7 @@ exports.getReadingMaterial = async (req, res) => {
 };
 
 // Define upload destination outside the project folder
-const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
+const UPLOAD_DIR = path.resolve(__dirname, '../../uploads');
 
 // Ensure the root upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
