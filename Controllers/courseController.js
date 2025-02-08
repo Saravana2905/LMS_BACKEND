@@ -427,7 +427,7 @@ exports.getReadingMaterial = async (req, res) => {
 
 
 // Define upload destination outside the project folder
-const UPLOAD_DIR = path.resolve(__dirname, '../../../uploads');
+const UPLOAD_DIR = path.resolve(__dirname, '../../uploads');
 
 // Ensure the root upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -441,8 +441,8 @@ const storage = multer.diskStorage({
 
     // Define structured folders
     const courseFolder = slugify(courseId, { lower: true, strict: true });
-    const weekFolder = `week${week}`;
-    const dayFolder = `day${day}`;
+    const weekFolder = `${week}`;
+    const dayFolder = `${day}`;
 
     const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
 
