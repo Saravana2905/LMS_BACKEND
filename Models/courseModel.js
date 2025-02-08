@@ -1,16 +1,5 @@
 const mongoose = require('mongoose');
 
-const resourceSchema = new mongoose.Schema({
-  pdf: { type: String, required: false },
-  ppt: { type: String, required: false }
-});
-
-const weekSchema = new mongoose.Schema({
-  day1: resourceSchema,
-  day2: resourceSchema,
-  day3: resourceSchema
-});
-
 const courseSchema = new mongoose.Schema(
   {
     courseTitle: { type: String, required: true },
@@ -36,12 +25,36 @@ const courseSchema = new mongoose.Schema(
     batches: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Batch' }],
 
     courseAttachment: {
-      week1: weekSchema,
-      week2: weekSchema,
-      week3: weekSchema,
-      week4: weekSchema,
-      week5: weekSchema,
-      week6: weekSchema
+      week1: {
+        day1: { pdf: { type: String }, ppt: { type: String } },
+        day2: { pdf: { type: String }, ppt: { type: String } },
+        day3: { pdf: { type: String }, ppt: { type: String } }
+      },
+      week2: {
+        day1: { pdf: { type: String }, ppt: { type: String } },
+        day2: { pdf: { type: String }, ppt: { type: String } },
+        day3: { pdf: { type: String }, ppt: { type: String } }
+      },
+      week3: {
+        day1: { pdf: { type: String }, ppt: { type: String } },
+        day2: { pdf: { type: String }, ppt: { type: String } },
+        day3: { pdf: { type: String }, ppt: { type: String } }
+      },
+      week4: {
+        day1: { pdf: { type: String }, ppt: { type: String } },
+        day2: { pdf: { type: String }, ppt: { type: String } },
+        day3: { pdf: { type: String }, ppt: { type: String } }
+      },
+      week5: {
+        day1: { pdf: { type: String }, ppt: { type: String } },
+        day2: { pdf: { type: String }, ppt: { type: String } },
+        day3: { pdf: { type: String }, ppt: { type: String } }
+      },
+      week6: {
+        day1: { pdf: { type: String }, ppt: { type: String } },
+        day2: { pdf: { type: String }, ppt: { type: String } },
+        day3: { pdf: { type: String }, ppt: { type: String } }
+      }
     }
   },
   { timestamps: true }

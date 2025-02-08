@@ -427,7 +427,7 @@ exports.getReadingMaterial = async (req, res) => {
 
 
 // Define upload destination outside the project folder
-const UPLOAD_DIR = path.resolve(__dirname, '../../uploads');
+const UPLOAD_DIR = path.resolve(__dirname, '../../../uploads');
 
 // Ensure the root upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -441,8 +441,8 @@ const storage = multer.diskStorage({
 
     // Define structured folders
     const courseFolder = slugify(courseId, { lower: true, strict: true });
-    const weekFolder = slugify(week, { lower: true, strict: true });
-    const dayFolder = slugify(day, { lower: true, strict: true });
+    const weekFolder = `week${week}`;
+    const dayFolder = `day${day}`;
 
     const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
 
@@ -454,14 +454,17 @@ const storage = multer.diskStorage({
     cb(null, finalPath);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + slugify(file.originalname, { lower: true, strict: true }));
+    const extension = path.extname(file.originalname); // Get file extension
+    const fileName = `${Date.now()}-${slugify(path.basename(file.originalname, extension), { lower: true, strict: true })}${extension}`;
+    cb(null, fileName);
   },
 });
+
 
 // Multer Upload Middleware
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  limits: { fileSize: 100 * 1024 * 1024 }, // 50MB limit
 }).fields([{ name: 'pdf', maxCount: 1 }, { name: 'ppt', maxCount: 1 }]);
 
 
@@ -478,24 +481,33 @@ exports.updateCourseAttachment = async (req, res) => {
       if (!course) return res.status(404).json({ message: "Course not found" });
 
       const courseFolder = slugify(courseId, { lower: true, strict: true });
-      const weekFolder = slugify(week, { lower: true, strict: true });
-      const dayFolder = slugify(day, { lower: true, strict: true });
+      const weekKey = `week${week}`;
+      const dayKey = `day${day}`;
 
-      const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekFolder}/${dayFolder}`;
+      const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekKey}/${dayKey}`;
 
       let pdfUrl = req.files.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
       let pptUrl = req.files.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
 
-      // Updating course document
+      // Explicitly updating the nested structure
       const updateFields = {};
-      if (pdfUrl) updateFields[`${weekFolder}_${dayFolder}_pdf`] = pdfUrl;
-      if (pptUrl) updateFields[`${weekFolder}_${dayFolder}_ppt`] = pptUrl;
+      if (pdfUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
+      if (pptUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
 
-      const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
+      const updatedCourse = await Course.findByIdAndUpdate(
+        courseId,
+        { $set: updateFields },
+        { new: true }
+      );
 
       res.json({
         message: "Course attachment updated successfully",
-        data: { pdf: pdfUrl, ppt: pptUrl },
+        data: {
+          week: weekKey,
+          day: dayKey,
+          pdf: pdfUrl,
+          ppt: pptUrl
+        }
       });
     } catch (error) {
       console.error("Error updating course attachment:", error);
