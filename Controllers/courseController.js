@@ -439,7 +439,7 @@ const storage = multer.diskStorage({
     const { courseId, week, day } = req.params;
 
     // Define structured folders
-    const courseFolder = slugify('attachment', { lower: true, strict: true });
+    const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
     const weekFolder = `${week}`;
     const dayFolder = `${day}`;
 
@@ -464,6 +464,60 @@ const upload = multer({
   storage,
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
 }).fields([{ name: 'pdf', maxCount: 1 }, { name: 'ppt', maxCount: 1 }]);
+
+// Controller to Create File Attachments
+exports.createCourseAttachment = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "File upload error", error: err.message });
+    }
+
+    try {
+      const { courseId, week, day } = req.params;
+      const course = await Course.findById(courseId);
+      console.log('course', course)
+      if (!course) return res.status(404).json({ message: "Course not found" });
+
+      const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
+      const weekKey = `${week}`;
+      const dayKey = `${day}`;
+
+      const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekKey}/${dayKey}`;
+
+      let pdfUrl = req.files?.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
+      let pptUrl = req.files?.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
+
+      // Structure for new attachment
+      const newAttachment = {
+        [`courseAttachment.${weekKey}.${dayKey}`]: {
+          pdf: pdfUrl,
+          ppt: pptUrl
+        }
+      };
+
+      // Create a new entry (ensure course exists first)
+      const updatedCourse = await Course.findByIdAndUpdate(
+        courseId,
+        { $set: newAttachment },
+        { new: true, upsert: true } // upsert ensures it creates a new entry if none exists
+      );
+
+      return res.status(201).json({
+        message: "Course attachment created successfully",
+        data: {
+          week: weekKey,
+          day: dayKey,
+          pdf: pdfUrl,
+          ppt: pptUrl
+        }
+      });
+    } catch (error) {
+      console.error("Error creating course attachment:", error);
+      return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+};
+
 
 // Controller to Handle File Uploads
 exports.updateCourseAttachment = async (req, res) => {
