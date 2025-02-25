@@ -17,6 +17,7 @@ const trainerAvailableTimeRoutes = require('./Routes/traineravailabletimeRoute')
 const webinarRegisterRoutes = require('./Routes/webinarRegisterRoute');  
 const loginRoutes = require('./Routes/loginRoute');
 const cashfreeRoutes = require('./Routes/cashfreeRoute')
+const paypalRoutes = require('./Routes/paypalRoute')
 const cors = require('cors');
 require('dotenv').config();
 
@@ -47,6 +48,7 @@ app.use('/files', express.static(path.join(__dirname, '..', '..', '..', 'uploads
 app.use('/trainerAvailableTime', trainerAvailableTimeRoutes);
 app.use('/webinarRegister', webinarRegisterRoutes)
 app.use('/cashfree', cashfreeRoutes)
+app.use('/paypal', paypalRoutes)
 
 //test route
 app.get('/', (req, res) => {
