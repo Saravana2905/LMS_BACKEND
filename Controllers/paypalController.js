@@ -8,7 +8,7 @@ exports.createsubscription = async (req, res) => {
       const {
         plan_id = process.env.PAYPAL_PLAN_ID,
         start_time = new Date(Date.now() + 86400000).toISOString(), // defaults to tomorrow
-        shipping_amount = { currency_code: "USD", value: "10.00" },
+        shipping_amount = { currency_code: "USD", value: "1.00" },
         subscriber = {
           name: { given_name: firstname, surname: lastname },
           email_address: email,
@@ -23,7 +23,7 @@ exports.createsubscription = async (req, res) => {
             payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED"
           },
           return_url: "https://example.com/return",
-          cancel_url: "https://tita"
+          cancel_url: "https://titatechnology.com"
         }
       } = req.body;
   
@@ -68,7 +68,10 @@ exports.createsubscription = async (req, res) => {
       const subscriptionResponse = await axios.request(subscriptionConfig);
     //   console.log("subscriptionResponse----->", subscriptionResponse);
       console.log("subscriptionLink--->",subscriptionResponse.data.links[0])
-      res.json(subscriptionResponse.data.links[0]);
+      res.json({
+        status:200,
+        subscriptionLink:subscriptionResponse.data.links[0]
+      });
     } catch (error) {
       console.error("error----->", error.response ? error.response.data : error);
       res.status(500).send('An error occurred');
