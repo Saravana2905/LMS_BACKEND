@@ -552,7 +552,7 @@ exports.updateCourseAttachment = async (req, res) => {
       if (pdfUrl) updateFields[`${weekKey}_${dayKey}_pdf`] = pdfUrl;
       if (pptUrl) updateFields[`${weekKey}_${dayKey}_ppt`] = pptUrl;
 
-      await Course.findByIdAndUpdate(courseId, { $set: updateFields });
+      const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
 
       return res.json({
         message: "Course attachment updated successfully",
@@ -561,7 +561,8 @@ exports.updateCourseAttachment = async (req, res) => {
           day: dayKey,
           pdf: pdfUrl,
           ppt: pptUrl
-        }
+        },
+        course: updatedCourse
       });
     } catch (error) {
       console.error("Error updating course attachment:", error);
