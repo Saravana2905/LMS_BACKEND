@@ -438,6 +438,8 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const { courseId, week, day } = req.params;
 
+    const course = Course.findById(courseId);
+    if (!course) return cb(new Error("Course not found"));
     // Define structured folders
     const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
     const weekFolder = `${week}`;
