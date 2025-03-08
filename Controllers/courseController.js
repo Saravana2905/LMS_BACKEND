@@ -538,7 +538,7 @@ exports.updateCourseAttachment = async (req, res) => {
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
 
-      const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
+      const courseFolder = slugify('attachment', { lower: true, strict: true });
       const weekKey = `${week}`;
       const dayKey = `${day}`;
 
@@ -547,29 +547,21 @@ exports.updateCourseAttachment = async (req, res) => {
       let pdfUrl = req.files?.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
       let pptUrl = req.files?.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
 
-      // Retrieve existing URLs if they exist
-      const existingCourse = await Course.findById(courseId);
-      if (!existingCourse) return res.status(404).json({ message: "Course not found" });
-
-      const existingPdfUrl = existingCourse[`${weekKey}_${dayKey}_pdf`];
-      const existingPptUrl = existingCourse[`${weekKey}_${dayKey}_ppt`];
-
       // Explicitly updating the nested structure
       const updateFields = {};
-      updateFields[`${weekKey}_${dayKey}_pdf`] = pdfUrl || existingPdfUrl;
-      updateFields[`${weekKey}_${dayKey}_ppt`] = pptUrl || existingPptUrl;
+      if (pdfUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
+      if (pptUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
 
-      const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
+      await Course.findByIdAndUpdate(courseId, { $set: updateFields });
 
       return res.json({
         message: "Course attachment updated successfully",
         data: {
           week: weekKey,
           day: dayKey,
-          pdf: updateFields[`${weekKey}_${dayKey}_pdf`],
-          ppt: updateFields[`${weekKey}_${dayKey}_ppt`]
-        },
-        course: updatedCourse
+          pdf: pdfUrl,
+          ppt: pptUrl
+        }
       });
     } catch (error) {
       console.error("Error updating course attachment:", error);
