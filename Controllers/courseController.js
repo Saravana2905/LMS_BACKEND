@@ -435,24 +435,29 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 
 // Multer Storage Configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: async (req, file, cb) => {
     const { courseId, week, day } = req.params;
 
-    const course = Course.findById(courseId);
-    if (!course) return cb(new Error("Course not found"));
-    // Define structured folders
-    const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
-    const weekFolder = `${week}`;
-    const dayFolder = `${day}`;
+    try {
+      const course = await Course.findById(courseId);
+      if (!course) return cb(new Error("Course not found"));
 
-    const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
+      // Define structured folders
+      const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
+      const weekFolder = `${week}`;
+      const dayFolder = `${day}`;
 
-    // Ensure folder exists
-    if (!fs.existsSync(finalPath)) {
-      fs.mkdirSync(finalPath, { recursive: true });
+      const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
+
+      // Ensure folder exists
+      if (!fs.existsSync(finalPath)) {
+        fs.mkdirSync(finalPath, { recursive: true });
+      }
+
+      cb(null, finalPath);
+    } catch (error) {
+      cb(error);
     }
-
-    cb(null, finalPath);
   },
   filename: (req, file, cb) => {
     const extension = path.extname(file.originalname); // Get file extension
@@ -533,7 +538,7 @@ exports.updateCourseAttachment = async (req, res) => {
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
 
-      const courseFolder = slugify('attachment', { lower: true, strict: true });
+      const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
       const weekKey = `${week}`;
       const dayKey = `${day}`;
 
@@ -544,8 +549,8 @@ exports.updateCourseAttachment = async (req, res) => {
 
       // Explicitly updating the nested structure
       const updateFields = {};
-      if (pdfUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
-      if (pptUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
+      if (pdfUrl) updateFields[`${weekKey}_${dayKey}_pdf`] = pdfUrl;
+      if (pptUrl) updateFields[`${weekKey}_${dayKey}_ppt`] = pptUrl;
 
       await Course.findByIdAndUpdate(courseId, { $set: updateFields });
 
