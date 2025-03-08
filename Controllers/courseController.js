@@ -547,10 +547,17 @@ exports.updateCourseAttachment = async (req, res) => {
       let pdfUrl = req.files?.pdf ? `${baseUrl}/${req.files.pdf[0].filename}` : null;
       let pptUrl = req.files?.ppt ? `${baseUrl}/${req.files.ppt[0].filename}` : null;
 
+      // Retrieve existing URLs if they exist
+      const existingCourse = await Course.findById(courseId);
+      if (!existingCourse) return res.status(404).json({ message: "Course not found" });
+
+      const existingPdfUrl = existingCourse[`${weekKey}_${dayKey}_pdf`];
+      const existingPptUrl = existingCourse[`${weekKey}_${dayKey}_ppt`];
+
       // Explicitly updating the nested structure
       const updateFields = {};
-      if (pdfUrl) updateFields[`${weekKey}_${dayKey}_pdf`] = pdfUrl;
-      if (pptUrl) updateFields[`${weekKey}_${dayKey}_ppt`] = pptUrl;
+      updateFields[`${weekKey}_${dayKey}_pdf`] = pdfUrl || existingPdfUrl;
+      updateFields[`${weekKey}_${dayKey}_ppt`] = pptUrl || existingPptUrl;
 
       const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateFields }, { new: true });
 
@@ -559,8 +566,8 @@ exports.updateCourseAttachment = async (req, res) => {
         data: {
           week: weekKey,
           day: dayKey,
-          pdf: pdfUrl,
-          ppt: pptUrl
+          pdf: updateFields[`${weekKey}_${dayKey}_pdf`],
+          ppt: updateFields[`${weekKey}_${dayKey}_ppt`]
         },
         course: updatedCourse
       });
