@@ -538,7 +538,7 @@ exports.updateCourseAttachment = async (req, res) => {
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
 
-      const courseFolder = slugify('attachment', { lower: true, strict: true });
+      const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
       const weekKey = `${week}`;
       const dayKey = `${day}`;
 
@@ -549,8 +549,8 @@ exports.updateCourseAttachment = async (req, res) => {
 
       // Explicitly updating the nested structure
       const updateFields = {};
-      if (pdfUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
-      if (pptUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
+      if (pdfUrl) updateFields[`${weekKey}_${dayKey}_pdf`] = pdfUrl;
+      if (pptUrl) updateFields[`${weekKey}_${dayKey}_ppt`] = pptUrl;
 
       await Course.findByIdAndUpdate(courseId, { $set: updateFields });
 
