@@ -562,3 +562,50 @@ exports.updateCourseAttachment = async (req, res) => {
     }
   });
 };
+
+exports.updateCourseField = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const updateData = req.body;
+
+    // Check if there are files to update
+    if (req.files) {
+      const { week, day, type } = req.body; // Expecting week, day, and type (pdf or ppt) in the body
+
+      if (week && day && type && req.files[type]) {
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ message: "Course not found" });
+
+        const courseFolder = slugify(course.courseTitle, { lower: true, strict: true });
+        const weekKey = `week${week}`;
+        const dayKey = `day${day}`;
+        const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekKey}/${dayKey}`;
+
+        const fileUrl = `${baseUrl}/${req.files[type][0].filename}`;
+
+        // Update the specific attachment field
+        updateData[`courseAttachment.${weekKey}.${dayKey}.${type}`] = fileUrl;
+      }
+    }
+
+    // Update the course with the provided data
+    const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateData }, { new: true });
+
+    if (!updatedCourse) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Course updated successfully',
+      course: updatedCourse,
+    });
+  } catch (error) {
+    console.error("Error updating course:", error);
+    res.status(500).json({
+      success: false,
+      message: 'Course update failed',
+      error: error.message,
+    });
+  }
+};
