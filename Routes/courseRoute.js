@@ -36,6 +36,6 @@ router.get('/getMaterialByStudentId/:id', getReadingMaterial);
 // Route to update attachments (PDF/PPT) for a specific course, week, and day
 router.put('/updateCourseAttachment/:courseId/:week/:day', updateCourseAttachment);  
 
-router.put('/updateAttachmnet', updateCourseField)
+router.put('/updateAttachmnet/:courseId', updateCourseField)
 
 module.exports = router;
