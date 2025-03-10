@@ -435,22 +435,32 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 
 // Multer Storage Configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: async (req, file, cb) => {
     const { courseId, week, day } = req.params;
 
-    // Define structured folders
-    const courseFolder = slugify(`${course.courseTitle}`, { lower: true, strict: true });
-    const weekFolder = `${week}`;
-    const dayFolder = `${day}`;
+    try {
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return cb(new Error("Course not found"), null);
+      }
 
-    const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
+      // Define structured folders
+      const courseFolder = slugify(course.courseTitle, { lower: true, strict: true });
+      const weekFolder = `${week}`;
+      const dayFolder = `${day}`;
 
-    // Ensure folder exists
-    if (!fs.existsSync(finalPath)) {
-      fs.mkdirSync(finalPath, { recursive: true });
+      const finalPath = path.join(UPLOAD_DIR, courseFolder, weekFolder, dayFolder);
+
+      // Ensure folder exists
+      if (!fs.existsSync(finalPath)) {
+        fs.mkdirSync(finalPath, { recursive: true });
+      }
+
+      cb(null, finalPath);
+    } catch (error) {
+      console.error("Error creating file destination:", error);
+      cb(error, null);
     }
-
-    cb(null, finalPath);
   },
   filename: (req, file, cb) => {
     const extension = path.extname(file.originalname); // Get file extension
@@ -527,6 +537,8 @@ exports.updateCourseAttachment = async (req, res) => {
     }
 
     try {
+      console.log('req', req.body);
+      console.log('req.files', req.files);
       const { courseId, week, day } = req.params;
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
@@ -545,7 +557,7 @@ exports.updateCourseAttachment = async (req, res) => {
       if (pdfUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
       if (pptUrl) updateFields[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
 
-      await Course.findByIdAndUpdate(courseId, { $set: updateFields });
+      await Course.findByIdAndUpdate(courseId, { $set: updateFields },{ new: true, upsert: true } );
 
       return res.json({
         message: "Course attachment updated successfully",
@@ -564,48 +576,84 @@ exports.updateCourseAttachment = async (req, res) => {
 };
 
 exports.updateCourseField = async (req, res) => {
-  try {
-    const { courseId } = req.params;
-    const updateData = req.body;
+  upload(req, res, async (err) => {
+    if (err) {
+      console.error("Multer file upload error:", err);
+      return res.status(400).json({ message: "File upload error", error: err.message });
+    }
 
-    // Check if there are files to update
-    if (req.files) {
-      const { week, day, type } = req.body; // Expecting week, day, and type (pdf or ppt) in the body
+    try {
+      const { courseId } = req.params;
+      let updateData = {}; // Store update fields dynamically
 
-      if (week && day && type && req.files[type]) {
-        const course = await Course.findById(courseId);
-        if (!course) return res.status(404).json({ message: "Course not found" });
+      console.log("✅ Received update request for courseId:", courseId);
+      console.log("📄 Request Body:", req.body);
+      console.log("📂 Files Received:", req.files);
 
-        const courseFolder = slugify(course.courseTitle, { lower: true, strict: true });
-        const weekKey = `week${week}`;
-        const dayKey = `day${day}`;
-        const baseUrl = `https://${req.get('host')}/files/${courseFolder}/${weekKey}/${dayKey}`;
-
-        const fileUrl = `${baseUrl}/${req.files[type][0].filename}`;
-
-        // Update the specific attachment field
-        updateData[`courseAttachment.${weekKey}.${dayKey}.${type}`] = fileUrl;
+      if (!req.files || Object.keys(req.files).length === 0) {
+        console.error("❌ No files uploaded!");
+        return res.status(400).json({ message: "No files uploaded." });
       }
+
+      const { week, day } = req.body;
+
+      if (!week || !day) {
+        console.error("❌ Missing week or day in the request.");
+        return res.status(400).json({ message: "Week and Day are required." });
+      }
+
+      const course = await Course.findById(courseId);
+      if (!course) {
+        console.error("❌ Course not found in MongoDB.");
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Generate file URLs
+      const courseFolder = slugify(course.courseTitle, { lower: true, strict: true });
+      const weekKey = `week${week}`;
+      const dayKey = `day${day}`;
+      const baseUrl = `https://${req.get("host")}/files/${courseFolder}/${weekKey}/${dayKey}`;
+
+      if (req.files.pdf) {
+        const pdfUrl = `${baseUrl}/${req.files.pdf[0].filename}`;
+        updateData[`courseAttachment.${weekKey}.${dayKey}.pdf`] = pdfUrl;
+        console.log("✅ PDF File URL:", pdfUrl);
+      }
+
+      if (req.files.ppt) {
+        const pptUrl = `${baseUrl}/${req.files.ppt[0].filename}`;
+        updateData[`courseAttachment.${weekKey}.${dayKey}.ppt`] = pptUrl;
+        console.log("✅ PPT File URL:", pptUrl);
+      }
+
+      console.log("📌 Final Update Data:", updateData);
+
+      // Update MongoDB
+      const updatedCourse = await Course.findByIdAndUpdate(
+        courseId,
+        { $set: updateData },
+        { new: true, upsert: true } // upsert ensures new fields are created
+      );
+
+      if (!updatedCourse) {
+        console.error("❌ MongoDB update failed.");
+        return res.status(404).json({ message: "Course not found after update" });
+      }
+
+      console.log("🎉 Course updated successfully:", updatedCourse);
+
+      res.status(200).json({
+        success: true,
+        message: "Course updated successfully",
+        course: updatedCourse,
+      });
+    } catch (error) {
+      console.error("🔥 Error updating course:", error);
+      res.status(500).json({
+        success: false,
+        message: "Course update failed",
+        error: error.message,
+      });
     }
-
-    // Update the course with the provided data
-    const updatedCourse = await Course.findByIdAndUpdate(courseId, { $set: updateData }, { new: true });
-
-    if (!updatedCourse) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Course updated successfully',
-      course: updatedCourse,
-    });
-  } catch (error) {
-    console.error("Error updating course:", error);
-    res.status(500).json({
-      success: false,
-      message: 'Course update failed',
-      error: error.message,
-    });
-  }
+  });
 };
